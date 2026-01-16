@@ -2,77 +2,105 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>🔥 ยอดเล่น Real-Time</title>
+<title>🔥 TOP ยอดเล่น Real-Time</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
+*{box-sizing:border-box}
 body{
   margin:0;
   font-family:'Sarabun',sans-serif;
   background:radial-gradient(circle at top,#0f172a,#020617);
   color:white;
 }
-.container{
-  max-width:480px;
+.wrapper{
+  max-width:520px;
   margin:40px auto;
-  padding:20px;
+  padding:16px;
 }
 .card{
   background:rgba(255,255,255,.06);
-  border-radius:18px;
+  backdrop-filter:blur(12px);
+  border-radius:20px;
   padding:20px;
-  box-shadow:0 20px 50px rgba(0,0,0,.5);
+  box-shadow:0 25px 60px rgba(0,0,0,.55);
 }
-h1{
-  margin:0 0 15px;
+.header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:15px;
+}
+.header h1{
+  margin:0;
   font-size:1.4rem;
+}
+.badge{
+  margin-left:auto;
+  font-size:.75rem;
+  color:#22c55e;
 }
 table{
   width:100%;
   border-collapse:collapse;
 }
 th,td{
-  padding:10px;
-  border-bottom:1px dashed rgba(255,255,255,.15);
+  padding:12px 10px;
 }
 th{
   text-align:left;
+  font-size:.8rem;
   color:#facc15;
+  border-bottom:1px solid rgba(255,255,255,.2);
 }
-td.amount{
+tr{
+  transition:background .2s;
+}
+tr:hover{
+  background:rgba(255,255,255,.05);
+}
+.rank{
+  width:30px;
+  color:#94a3b8;
+}
+.top1{color:#facc15;font-weight:bold}
+.top2{color:#e5e7eb}
+.top3{color:#fb7185}
+.amount{
   text-align:right;
   font-weight:bold;
   color:#22c55e;
 }
-.rank{
-  color:#94a3b8;
-  width:30px;
-}
 .empty{
   text-align:center;
-  color:#64748b;
   padding:30px;
+  color:#64748b;
 }
 </style>
 </head>
 
 <body>
-<div class="container">
+<div class="wrapper">
   <div class="card">
-    <h1>🔥 ยอดเล่น Real-Time</h1>
-    <table id="result">
+    <div class="header">
+      <h1>🔥 TOP ยอดเล่น</h1>
+      <div class="badge">LIVE</div>
+    </div>
+
+    <table>
       <thead>
         <tr>
           <th>#</th>
           <th>ชื่อ</th>
-          <th style="text-align:right;">ยอด</th>
+          <th style="text-align:right">ยอด</th>
         </tr>
       </thead>
-      <tbody></tbody>
+      <tbody id="table-body"></tbody>
     </table>
   </div>
 </div>
