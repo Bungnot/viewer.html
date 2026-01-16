@@ -1,44 +1,67 @@
-// Firebase Config (ต้องเหมือน Admin เป๊ะ)
+/***** 1. Firebase Config (คัดมาจากเว็บหลัก) *****/
 const firebaseConfig = {
   apiKey: "AIzaSyBQQqfwcPDFPjdzeaMkU4EwpYXkBr256yo",
   authDomain: "admin-rocket-live.firebaseapp.com",
   databaseURL: "https://admin-rocket-live-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "admin-rocket-live",
-  storageBucket: "admin-rocket-live.appspot.com",
+  storageBucket: "admin-rocket-live.firebasestorage.app",
   messagingSenderId: "875303528481",
   appId: "1:875303528481:web:719af49939623d64225b60"
 };
 
+/***** 2. INIT FIREBASE (ห้ามลืมเด็ดขาด) *****/
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+/***** 3. DOM *****/
 const root = document.getElementById("viewer-summary");
 
-db.ref("liveTables").on("value", snap => {
-  const data = snap.val();
+/***** 4. LISTEN REALTIME *****/
+db.ref("realtimeTables").on("value", snap => {
+  const payload = snap.val();
   root.innerHTML = "";
 
-  if (!data) {
-    root.innerHTML = "<div style='opacity:.6'>ยังไม่มีข้อมูล</div>";
+  if (!payload || !payload.tables) {
+    root.innerHTML = "ยังไม่มีข้อมูล";
     return;
   }
 
-  Object.entries(data).forEach(([tableName, tableData]) => {
-    const total = tableData.total || 0;
+  payload.tables.forEach(table => {
+    const map = {};
 
-    const box = document.createElement("div");
-    box.style.background = "#0f172a";
-    box.style.borderRadius = "16px";
-    box.style.padding = "15px";
-    box.style.marginBottom = "16px";
+    table.rows.forEach(r => {
+      const nums = String(r[1] || "").match(/\d+/g);
+      if (!nums) return;
 
-    box.innerHTML = `
-      <h3>🔥 ${tableName}</h3>
-      <div style="font-size:20px;font-weight:700;margin-top:8px">
-        ยอดรวม: ${total.toLocaleString()} บาท
-      </div>
-    `;
+      let sum = 0;
+      nums.forEach(n => {
+        if (n.length >= 3) sum += parseInt(n);
+      });
 
-    root.appendChild(box);
+      if (sum > 0) {
+        if (r[0]) map[r[0]] = (map[r[0]] || 0) + sum;
+        if (r[2] && r[2] !== r[0])
+          map[r[2]] = (map[r[2]] || 0) + sum;
+      }
+    });
+
+    const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]);
+    if (!sorted.length) return;
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<h3>${table.title || "ไม่ระบุค่าย"}</h3>`;
+
+    sorted.forEach(([name, total], i) => {
+      card.innerHTML += `
+        <div class="row">
+          <span>#${i+1} ${name}</span>
+          <b>${total.toLocaleString()}</b>
+        </div>
+      `;
+    });
+
+    root.appendChild(card);
   });
 });
+
