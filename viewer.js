@@ -1,4 +1,4 @@
-// 🔧 Firebase config (เหมือนเว็บหลัก)
+// Firebase config (เหมือนเว็บหลัก)
 const firebaseConfig = {
   apiKey: "AIzaSyBQQqfwcPDFPjdzeaMkU4EwpYXkBr256yo",
   authDomain: "admin-rocket-live.firebaseapp.com",
@@ -12,81 +12,74 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const container = document.getElementById("viewer-summary");
+const container = document.getElementById("viewer-content");
 
-// ✅ ฟังก์ชันคำนวณยอด
-function calculateSummary(rows = []) {
+// 🔢 รวมยอดจากทุกค่าย
+function buildGlobalSummary(tables = []) {
   const map = {};
 
-  rows.forEach(r => {
-    if (!Array.isArray(r)) return;
-    const [chaser, price, holder] = r;
+  tables.forEach(table => {
+    (table.rows || []).forEach(r => {
+      if (!Array.isArray(r)) return;
 
-    const nums = (price || "").toString().match(/\d+/g);
-    if (!nums) return;
+      const [chaser, price, holder] = r;
+      const nums = (price || "").toString().match(/\d+/g);
+      if (!nums) return;
 
-    let sum = 0;
-    nums.forEach(n => {
-      if (n.length >= 3) sum += parseInt(n);
+      let sum = 0;
+      nums.forEach(n => {
+        if (n.length >= 3) sum += parseInt(n);
+      });
+
+      if (sum > 0) {
+        if (chaser) map[chaser] = (map[chaser] || 0) + sum;
+        if (holder && holder !== chaser)
+          map[holder] = (map[holder] || 0) + sum;
+      }
     });
-
-    if (sum > 0) {
-      if (chaser) map[chaser] = (map[chaser] || 0) + sum;
-      if (holder && holder !== chaser)
-        map[holder] = (map[holder] || 0) + sum;
-    }
   });
 
-  return Object.entries(map).sort((a,b)=>b[1]-a[1]);
+  return Object.entries(map).sort((a, b) => b[1] - a[1]);
 }
 
-// ✅ Listen แบบกันพัง
+// 🔴 Listen Realtime
 db.ref("realtimeTables").on("value", snap => {
   const data = snap.val();
 
   if (!data || !Array.isArray(data.tables)) {
-    container.innerHTML = `<div class="empty">รอข้อมูลจากเว็บหลัก...</div>`;
+    container.innerHTML = `<div class="empty">รอข้อมูลจากระบบ…</div>`;
     return;
   }
 
-  let html = "";
+  const summary = buildGlobalSummary(data.tables);
 
-  data.tables.forEach((table, idx) => {
-    const title = table.title || `ค่าย ${idx+1}`;
-    const summary = calculateSummary(table.rows || []);
+  if (summary.length === 0) {
+    container.innerHTML = `<div class="empty">ยังไม่มีรายการเล่น</div>`;
+    return;
+  }
 
+  let html = `
+    <table>
+      <thead>
+        <tr>
+          <th style="width:40px;">#</th>
+          <th>ชื่อ</th>
+          <th style="text-align:right;">ยอด</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  summary.forEach(([name, total], i) => {
     html += `
-      <div class="camp">
-        <div class="camp-title">🏕️ ${title}</div>
+      <tr>
+        <td class="rank">${i + 1}</td>
+        <td class="name">${name}</td>
+        <td class="amount">${total.toLocaleString()}</td>
+      </tr>
     `;
-
-    if (summary.length === 0) {
-      html += `<div class="empty">ยังไม่มีรายการ</div>`;
-    } else {
-      html += `
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>ชื่อ</th>
-              <th>ยอด</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${summary.map(([name,total],i)=>`
-              <tr>
-                <td>${i+1}</td>
-                <td>${name}</td>
-                <td>${total.toLocaleString()}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      `;
-    }
-
-    html += `</div>`;
   });
 
+  html += `</tbody></table>`;
   container.innerHTML = html;
 });
