@@ -2,13 +2,12 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>ยอดเล่น Real-Time</title>
+  <title>🔥 ยอดเล่น Real-Time</title>
 
-  <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <style>
     body{
@@ -17,16 +16,12 @@
       font-family:'Sarabun',sans-serif;
       color:#fff;
     }
-    h2{
-      margin-bottom:15px;
-    }
     .table-box{
-      background:#ffffff;
+      background:#fff;
       color:#020617;
       border-radius:16px;
       padding:15px;
       margin-bottom:20px;
-      box-shadow:0 8px 20px rgba(0,0,0,.25);
     }
     .row{
       display:flex;
@@ -36,31 +31,17 @@
       font-weight:600;
     }
     .row:last-child{border-bottom:none;}
-    .rank{
-      color:#64748b;
-      margin-right:6px;
-    }
-    .amount{
-      color:#16a34a;
-      font-weight:700;
-    }
-    .empty{
-      opacity:.6;
-      text-align:center;
-      margin-top:40px;
-    }
+    .amount{color:#16a34a}
+    .empty{text-align:center;opacity:.6}
   </style>
 </head>
+
 <body>
 
   <h2>🔥 ยอดเล่น Real-Time</h2>
+  <div id="viewer-summary" class="empty">กำลังรอข้อมูล…</div>
 
-  <!-- แสดงผลตรงนี้เท่านั้น -->
-  <div id="viewer-summary"></div>
-
-  <!-- Firebase config (ใช้ตัวเดียวกับ ADMIN) -->
   <script>
-    
     const firebaseConfig = {
       apiKey: "AIzaSyBQQqfwcPDFPjdzeaMkU4EwpYXkBr256yo",
       authDomain: "admin-rocket-live.firebaseapp.com",
@@ -70,38 +51,10 @@
       messagingSenderId: "875303528481",
       appId: "1:875303528481:web:719af49939623d64225b60"
     };
+
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    db.ref("realtimeTables").on("value", snapshot => {
-  const data = snapshot.val();
-  const box = document.getElementById("viewer");
-  box.innerHTML = "";
-
-  if (!data || !data.tables) {
-    box.innerHTML = "<p>ยังไม่มีข้อมูล</p>";
-    return;
-  }
-
-  data.tables.forEach(table => {
-    let html = `<h3>ค่าย: ${table.title}</h3><table border="1" width="100%">`;
-
-    table.rows.forEach(r => {
-      html += `<tr>
-        <td>${r[0]}</td>
-        <td>${r[1]}</td>
-        <td>${r[2]}</td>
-      </tr>`;
-    });
-
-    html += "</table><hr>";
-    box.innerHTML += html;
-  });
-});
-    
   </script>
 
   <script src="viewer.js"></script>
 </body>
 </html>
-
