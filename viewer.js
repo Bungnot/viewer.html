@@ -1,4 +1,4 @@
-/*************** 1) Firebase Config ***************/
+// Firebase Config (ต้องเหมือน Admin เป๊ะ)
 const firebaseConfig = {
   apiKey: "AIzaSyBQQqfwcPDFPjdzeaMkU4EwpYXkBr256yo",
   authDomain: "admin-rocket-live.firebaseapp.com",
@@ -9,17 +9,13 @@ const firebaseConfig = {
   appId: "1:875303528481:web:719af49939623d64225b60"
 };
 
-/*************** 2) Init Firebase ***************/
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-/*************** 3) DOM ***************/
 const root = document.getElementById("viewer-summary");
 
-/*************** 4) Listen Real-time ***************/
 db.ref("liveTables").on("value", snap => {
   const data = snap.val();
-
   root.innerHTML = "";
 
   if (!data) {
@@ -27,22 +23,20 @@ db.ref("liveTables").on("value", snap => {
     return;
   }
 
-  Object.values(data).forEach(table => {
-    const summary = table.summary || {};
-    const entries = Object.entries(summary).sort((a,b)=>b[1]-a[1]);
-    if (!entries.length) return;
+  Object.entries(data).forEach(([tableName, tableData]) => {
+    const total = tableData.total || 0;
 
     const box = document.createElement("div");
-    box.className = "card";
+    box.style.background = "#0f172a";
+    box.style.borderRadius = "16px";
+    box.style.padding = "15px";
+    box.style.marginBottom = "16px";
 
     box.innerHTML = `
-      <h3>${table.title || "ไม่ระบุค่าย"}</h3>
-      ${entries.map(([name,total],i)=>`
-        <div class="row">
-          <span>#${i+1} ${name}</span>
-          <b>${total.toLocaleString()}</b>
-        </div>
-      `).join("")}
+      <h3>🔥 ${tableName}</h3>
+      <div style="font-size:20px;font-weight:700;margin-top:8px">
+        ยอดรวม: ${total.toLocaleString()} บาท
+      </div>
     `;
 
     root.appendChild(box);
