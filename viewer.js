@@ -1,55 +1,41 @@
 const root = document.getElementById("viewer-summary");
 const db = firebase.database();
 
-/*
-  🔴 path ต้องตรงกับฝั่ง ADMIN
-  ปกติคุณใช้ liveTables
-*/
 db.ref("liveTables").on("value", snap => {
   const data = snap.val();
   root.innerHTML = "";
 
   if (!data) {
-    root.innerHTML = `<div class="empty">ยังไม่มีข้อมูล</div>`;
+    root.innerHTML = "<div class='empty'>ยังไม่มีข้อมูล</div>";
     return;
   }
 
   data.forEach(table => {
-    const map = {};
+    const sumMap = {};
 
-    // รวมยอดตามชื่อ
     table.rows?.forEach(r => {
-      const nums = r.price?.match(/\d+/g);
-      if (!nums) return;
+      const val = parseInt(r.price);
+      if (isNaN(val)) return;
 
-      let sum = 0;
-      nums.forEach(n => {
-        if (n.length >= 3) sum += parseInt(n);
-      });
+      if (r.chaser)
+        sumMap[r.chaser] = (sumMap[r.chaser] || 0) + val;
 
-      if (sum > 0) {
-        if (r.chaser)
-          map[r.chaser] = (map[r.chaser] || 0) + sum;
-
-        if (r.holder && r.holder !== r.chaser)
-          map[r.holder] = (map[r.holder] || 0) + sum;
-      }
+      if (r.holder && r.holder !== r.chaser)
+        sumMap[r.holder] = (sumMap[r.holder] || 0) + val;
     });
 
-    const sorted = Object.entries(map)
-      .sort((a,b)=>b[1]-a[1]);
-
+    const sorted = Object.entries(sumMap).sort((a,b)=>b[1]-a[1]);
     if (!sorted.length) return;
 
     const box = document.createElement("div");
     box.className = "table-box";
 
     box.innerHTML = `
-      <h3 style="margin-bottom:10px">🔥 ${table.title}</h3>
-      ${sorted.map(([name,value],i)=>`
+      <h3>🔥 ${table.title}</h3>
+      ${sorted.map(([name,val],i)=>`
         <div class="row">
-          <span><span class="rank">#${i+1}</span>${name}</span>
-          <span class="amount">${value.toLocaleString()}</span>
+          <span>#${i+1} ${name}</span>
+          <span class="amount">${val.toLocaleString()}</span>
         </div>
       `).join("")}
     `;
