@@ -7,9 +7,8 @@
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <style>
     body{
@@ -61,6 +60,7 @@
 
   <!-- Firebase config (ใช้ตัวเดียวกับ ADMIN) -->
   <script>
+    
     const firebaseConfig = {
       apiKey: "AIzaSyBQQqfwcPDFPjdzeaMkU4EwpYXkBr256yo",
       authDomain: "admin-rocket-live.firebaseapp.com",
@@ -70,10 +70,38 @@
       messagingSenderId: "875303528481",
       appId: "1:875303528481:web:719af49939623d64225b60"
     };
-
     firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    db.ref("realtimeTables").on("value", snapshot => {
+  const data = snapshot.val();
+  const box = document.getElementById("viewer");
+  box.innerHTML = "";
+
+  if (!data || !data.tables) {
+    box.innerHTML = "<p>ยังไม่มีข้อมูล</p>";
+    return;
+  }
+
+  data.tables.forEach(table => {
+    let html = `<h3>ค่าย: ${table.title}</h3><table border="1" width="100%">`;
+
+    table.rows.forEach(r => {
+      html += `<tr>
+        <td>${r[0]}</td>
+        <td>${r[1]}</td>
+        <td>${r[2]}</td>
+      </tr>`;
+    });
+
+    html += "</table><hr>";
+    box.innerHTML += html;
+  });
+});
+    
   </script>
 
   <script src="viewer.js"></script>
 </body>
 </html>
+
