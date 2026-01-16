@@ -1,85 +1,67 @@
-// Firebase config (เหมือนเว็บหลัก)
-const firebaseConfig = {
+// 🔥 Firebase config (ของคุณ)
+firebase.initializeApp({
   apiKey: "AIzaSyBQQqfwcPDFPjdzeaMkU4EwpYXkBr256yo",
   authDomain: "admin-rocket-live.firebaseapp.com",
   databaseURL: "https://admin-rocket-live-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "admin-rocket-live",
-  storageBucket: "admin-rocket-live.firebasestorage.app",
-  messagingSenderId: "875303528481",
-  appId: "1:875303528481:web:719af49939623d64225b60"
-};
+  projectId: "admin-rocket-live"
+});
 
-firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+const tbody = document.querySelector("#result tbody");
 
-const container = document.getElementById("viewer-content");
+// ✅ ฟังก์ชันรวมยอด (หัวใจทั้งหมด)
+function aggregateTotals(tables){
+  const totals = {};
 
-// 🔢 รวมยอดจากทุกค่าย
-function buildGlobalSummary(tables = []) {
-  const map = {};
+  tables.forEach(t=>{
+    t.rows.forEach(r=>{
+      const chaser = r[0]?.trim();
+      const price  = r[1]?.replace(/[Oo]/g,'0');
+      const holder = r[2]?.trim();
 
-  tables.forEach(table => {
-    (table.rows || []).forEach(r => {
-      if (!Array.isArray(r)) return;
+      const nums = price?.match(/\d+/g);
+      if(!nums) return;
 
-      const [chaser, price, holder] = r;
-      const nums = (price || "").toString().match(/\d+/g);
-      if (!nums) return;
-
-      let sum = 0;
-      nums.forEach(n => {
-        if (n.length >= 3) sum += parseInt(n);
+      nums.forEach(n=>{
+        if(n.length>=3){
+          const val = parseInt(n);
+          if(chaser) totals[chaser]=(totals[chaser]||0)+val;
+          if(holder && holder!==chaser)
+            totals[holder]=(totals[holder]||0)+val;
+        }
       });
-
-      if (sum > 0) {
-        if (chaser) map[chaser] = (map[chaser] || 0) + sum;
-        if (holder && holder !== chaser)
-          map[holder] = (map[holder] || 0) + sum;
-      }
     });
   });
 
-  return Object.entries(map).sort((a, b) => b[1] - a[1]);
+  return Object.entries(totals)
+    .sort((a,b)=>b[1]-a[1]);
 }
 
-// 🔴 Listen Realtime
-db.ref("realtimeTables").on("value", snap => {
-  const data = snap.val();
-
-  if (!data || !Array.isArray(data.tables)) {
-    container.innerHTML = `<div class="empty">รอข้อมูลจากระบบ…</div>`;
+// ✅ render ตารางเดียว
+function render(list){
+  tbody.innerHTML="";
+  if(list.length===0){
+    tbody.innerHTML=`<tr><td colspan="3" class="empty">รอข้อมูล...</td></tr>`;
     return;
   }
 
-  const summary = buildGlobalSummary(data.tables);
-
-  if (summary.length === 0) {
-    container.innerHTML = `<div class="empty">ยังไม่มีรายการเล่น</div>`;
-    return;
-  }
-
-  let html = `
-    <table>
-      <thead>
-        <tr>
-          <th style="width:40px;">#</th>
-          <th>ชื่อ</th>
-          <th style="text-align:right;">ยอด</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  summary.forEach(([name, total], i) => {
-    html += `
+  list.forEach(([name,total],i)=>{
+    tbody.innerHTML+=`
       <tr>
-        <td class="rank">${i + 1}</td>
-        <td class="name">${name}</td>
+        <td class="rank">#${i+1}</td>
+        <td>${name}</td>
         <td class="amount">${total.toLocaleString()}</td>
-      </tr>
-    `;
+      </tr>`;
   });
+}
 
-  html += `</tbody></table>`;
-  container.innerHTML = html;
+// ✅ listener เดียว เสถียร
+db.ref("realtimeTables").on("value",snap=>{
+  const data=snap.val();
+  if(!data||!data.tables){
+    render([]);
+    return;
+  }
+  const result=aggregateTotals(data.tables);
+  render(result);
 });
