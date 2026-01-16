@@ -1,41 +1,35 @@
-const root = document.getElementById("viewer-summary");
+const firebaseConfig = {
+  // 🔴 ใช้ config เดียวกับเว็บหลัก
+};
+
+firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+const root = document.getElementById("viewer-summary");
 
 db.ref("liveTables").on("value", snap => {
   const data = snap.val();
-  root.innerHTML = "";
-
   if (!data) {
-    root.innerHTML = "<div class='empty'>ยังไม่มีข้อมูล</div>";
+    root.innerHTML = "ยังไม่มีข้อมูล";
     return;
   }
 
-  data.forEach(table => {
-    const sumMap = {};
+  root.innerHTML = "";
 
-    table.rows?.forEach(r => {
-      const val = parseInt(r.price);
-      if (isNaN(val)) return;
+  Object.values(data).forEach(table => {
+    const entries = Object.entries(table.summary || {})
+      .sort((a,b)=>b[1]-a[1]);
 
-      if (r.chaser)
-        sumMap[r.chaser] = (sumMap[r.chaser] || 0) + val;
-
-      if (r.holder && r.holder !== r.chaser)
-        sumMap[r.holder] = (sumMap[r.holder] || 0) + val;
-    });
-
-    const sorted = Object.entries(sumMap).sort((a,b)=>b[1]-a[1]);
-    if (!sorted.length) return;
+    if (!entries.length) return;
 
     const box = document.createElement("div");
-    box.className = "table-box";
+    box.className = "card";
 
     box.innerHTML = `
-      <h3>🔥 ${table.title}</h3>
-      ${sorted.map(([name,val],i)=>`
+      <h3>📌 ${table.title}</h3>
+      ${entries.map(([n,v],i)=>`
         <div class="row">
-          <span>#${i+1} ${name}</span>
-          <span class="amount">${val.toLocaleString()}</span>
+          <span>#${i+1} ${n}</span>
+          <b>${v.toLocaleString()}</b>
         </div>
       `).join("")}
     `;
