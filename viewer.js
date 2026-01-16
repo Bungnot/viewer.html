@@ -1,13 +1,13 @@
 /*************** 1) Firebase Config ***************/
 const firebaseConfig = {
-    apiKey: "AIzaSyBQQqfwcPDFPjdzeaMkU4EwpYXkBr256yo",
-    authDomain: "admin-rocket-live.firebaseapp.com",
-    databaseURL: "https://admin-rocket-live-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "admin-rocket-live",
-    storageBucket: "admin-rocket-live.firebasestorage.app",
-    messagingSenderId: "875303528481",
-    appId: "1:875303528481:web:719af49939623d64225b60"
-  };
+  apiKey: "AIzaSyBQQqfwcPDFPjdzeaMkU4EwpYXkBr256yo",
+  authDomain: "admin-rocket-live.firebaseapp.com",
+  databaseURL: "https://admin-rocket-live-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "admin-rocket-live",
+  storageBucket: "admin-rocket-live.appspot.com",
+  messagingSenderId: "875303528481",
+  appId: "1:875303528481:web:719af49939623d64225b60"
+};
 
 /*************** 2) Init Firebase ***************/
 firebase.initializeApp(firebaseConfig);
@@ -23,43 +23,24 @@ db.ref("liveTables").on("value", snap => {
   root.innerHTML = "";
 
   if (!data) {
-    root.innerHTML = "<div class='empty'>ยังไม่มีข้อมูล</div>";
+    root.innerHTML = "<div style='opacity:.6'>ยังไม่มีข้อมูล</div>";
     return;
   }
 
   Object.values(data).forEach(table => {
-    if (!table.rows) return;
+    const summary = table.summary || {};
+    const entries = Object.entries(summary).sort((a,b)=>b[1]-a[1]);
+    if (!entries.length) return;
 
-    const map = {};
+    const box = document.createElement("div");
+    box.className = "card";
 
-    table.rows.forEach(r => {
-      const nums = String(r.price || "").match(/\d+/g);
-      if (!nums) return;
-
-      let sum = 0;
-      nums.forEach(n=>{
-        if(n.length>=3) sum += parseInt(n);
-      });
-
-      if(sum>0){
-        if(r.chaser) map[r.chaser]=(map[r.chaser]||0)+sum;
-        if(r.holder && r.holder!==r.chaser)
-          map[r.holder]=(map[r.holder]||0)+sum;
-      }
-    });
-
-    const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]);
-    if(!sorted.length) return;
-
-    const box=document.createElement("div");
-    box.className="box";
-
-    box.innerHTML=`
-      <b>${table.title || "ไม่ระบุชื่อบั้ง"}</b>
-      ${sorted.map(([n,v],i)=>`
+    box.innerHTML = `
+      <h3>${table.title || "ไม่ระบุค่าย"}</h3>
+      ${entries.map(([name,total],i)=>`
         <div class="row">
-          <span>#${i+1} ${n}</span>
-          <b>${v.toLocaleString()}</b>
+          <span>#${i+1} ${name}</span>
+          <b>${total.toLocaleString()}</b>
         </div>
       `).join("")}
     `;
