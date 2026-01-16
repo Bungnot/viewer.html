@@ -4,26 +4,47 @@
   <meta charset="UTF-8">
   <title>ยอดเล่น Real-Time</title>
 
+  <!-- ฟอนต์ -->
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-  <!-- ใช้ CSS เดิมของคุณ -->
+  <!-- CSS เดิมของคุณ -->
   <link rel="stylesheet" href="css.css">
 
   <style>
     body{
       background:#020617;
       padding:20px;
-      font-family:Sarabun;
+      font-family:'Sarabun', sans-serif;
     }
   </style>
 </head>
 <body>
 
-  <!-- 🔥 แสดงเฉพาะส่วนนี้ -->
+  <!-- ✅ คนอื่นจะเห็นแค่กล่องนี้ -->
   <div id="viewer-summary"></div>
 
+  <!-- 🔴 Firebase config (สำคัญมาก) -->
+  <script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBQQqfwcPDFPjdzeaMkU4EwpYXkBr256yo",
+    authDomain: "admin-rocket-live.firebaseapp.com",
+    databaseURL: "https://admin-rocket-live-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "admin-rocket-live",
+    storageBucket: "admin-rocket-live.firebasestorage.app",
+    messagingSenderId: "875303528481",
+    appId: "1:875303528481:web:719af49939623d64225b60",
+    measurementId: "G-NP2MSGPWND"
+  };
+
+    firebase.initializeApp(firebaseConfig);
+  </script>
+
+  <!-- Logic สำหรับ Viewer -->
   <script src="viewer.js"></script>
+
 </body>
 </html>
