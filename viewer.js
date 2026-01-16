@@ -1,4 +1,3 @@
-/* 🔐 Firebase config (ใช้ชุดเดียวกับเว็บหลัก) */
 const firebaseConfig = {
   apiKey: "AIzaSyBQQqfwcPDFPjdzeaMkU4EwpYXkBr256yo",
   authDomain: "admin-rocket-live.firebaseapp.com",
@@ -9,118 +8,47 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const root = document.getElementById("viewer-root");
+let lastUpdated = 0;
 
-/* 📡 อ่าน realtime */
 db.ref("realtimeTables").on("value", snap => {
   const data = snap.val();
-  if(!data || !data.tables){
-    root.innerHTML = "<p>ยังไม่มีข้อมูล</p>";
-    return;
-  }
+  if (!data || !data.tables) return;
+
+  if (data.updatedAt === lastUpdated) return;
+  lastUpdated = data.updatedAt;
+
   renderTables(data.tables);
 });
 
-/* 🧱 render ตาราง */
-function renderTables(tables){
+function renderTables(tables) {
+  const root = document.getElementById("tables");
   root.innerHTML = "";
 
-  tables.forEach((table, idx) => {
-    const card = document.createElement("div");
-    card.className = "table-card";
+  tables.forEach(t => {
+    const sorted = Object.entries(t.summary.players)
+      .sort((a,b)=>b[1]-a[1]);
 
-    let rowsHtml = table.rows.map(r => `
+    let rows = sorted.map(([name,val],i)=>`
       <tr>
-        <td>${r[0]}</td>
-        <td>${r[1]}</td>
-        <td>${r[2]}</td>
-      </tr>
-    `).join("");
+        <td>#${i+1}</td>
+        <td>${name}</td>
+        <td style="text-align:right">${val.toLocaleString()}</td>
+        <td><button onclick="alert('${name}')">ดู</button></td>
+      </tr>`).join("");
 
-    card.innerHTML = `
-      <h2>🏕️ ${table.title || "ไม่ระบุค่าย"}</h2>
-
-      <table>
-        <thead>
-          <tr>
-            <th>คนไล่</th>
-            <th>ราคา</th>
-            <th>คนยั้ง</th>
-          </tr>
-        </thead>
-        <tbody>${rowsHtml}</tbody>
-      </table>
-
-      <button class="btn btn-summary" onclick="showCampSummary(${idx})">
-        ดูยอดรวมค่าย
-      </button>
-      <button class="btn btn-player" onclick="showPlayerSummary(${idx})">
-        ดูยอดรายบุคคล
-      </button>
+    root.innerHTML += `
+      <div class="card">
+        <h3>${t.title}</h3>
+        <table>
+          <thead>
+            <tr><th>#</th><th>ชื่อ</th><th>ยอด</th><th></th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div style="margin-top:10px;font-weight:bold">
+          รวมทั้งหมด: ${t.summary.total.toLocaleString()}
+        </div>
+      </div>
     `;
-
-    root.appendChild(card);
   });
-}
-
-/* 📊 สรุปยอดค่าย */
-function showCampSummary(index){
-  db.ref("realtimeTables/tables/"+index).once("value").then(snap=>{
-    const t = snap.val();
-    let total = 0;
-
-    t.rows.forEach(r=>{
-      const nums = r[1].match(/\d+/g);
-      if(nums){
-        nums.forEach(n=>{
-          if(n.length>=3) total+=parseInt(n);
-        });
-      }
-    });
-
-    openModal(`
-      <h2>🏕️ ${t.title}</h2>
-      <h1>รวมทั้งหมด ${total.toLocaleString()}</h1>
-    `);
-  });
-}
-
-/* 👤 สรุปยอดรายคน */
-function showPlayerSummary(index){
-  db.ref("realtimeTables/tables/"+index).once("value").then(snap=>{
-    const t = snap.val();
-    const map = {};
-
-    t.rows.forEach(r=>{
-      const nums = r[1].match(/\d+/g);
-      let sum = 0;
-      if(nums){
-        nums.forEach(n=>{
-          if(n.length>=3) sum+=parseInt(n);
-        });
-      }
-      if(sum>0){
-        if(r[0]) map[r[0]]=(map[r[0]]||0)+sum;
-        if(r[2] && r[2]!==r[0]) map[r[2]]=(map[r[2]]||0)+sum;
-      }
-    });
-
-    const html = Object.entries(map)
-      .sort((a,b)=>b[1]-a[1])
-      .map(([n,v],i)=>`
-        <p>#${i+1} ${n} — ${v.toLocaleString()}</p>
-      `).join("");
-
-    openModal(`<h2>👤 ยอดรายบุคคล</h2>${html}`);
-  });
-}
-
-/* 🪟 modal */
-function openModal(html){
-  document.getElementById("modal-content").innerHTML = html;
-  document.getElementById("modal").style.display = "flex";
-}
-function closeModal(e){
-  if(e.target.id==="modal")
-    document.getElementById("modal").style.display="none";
 }
