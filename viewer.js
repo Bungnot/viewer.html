@@ -1,54 +1,59 @@
 const root = document.getElementById("viewer-summary");
+const db = firebase.database();
 
-/* --------------------------
-   ข้อมูลทดสอบ (MOCK DATA)
----------------------------*/
-const mockData = [
-  {
-    title: "ค่าย A",
-    players: [
-      { name: "Aorm", total: 400 },
-      { name: "BenZ", total: 300 },
-      { name: "Nuy", total: 200 }
-    ]
-  },
-  {
-    title: "ค่าย B",
-    players: [
-      { name: "Macus", total: 500 },
-      { name: "William", total: 350 }
-    ]
-  }
-];
-
-/* --------------------------
-   ฟังก์ชันกดปุ่ม
----------------------------*/
-function mockAdd(){
+/*
+  🔴 path ต้องตรงกับฝั่ง ADMIN
+  ปกติคุณใช้ liveTables
+*/
+db.ref("liveTables").on("value", snap => {
+  const data = snap.val();
   root.innerHTML = "";
 
-  mockData.forEach(table=>{
+  if (!data) {
+    root.innerHTML = `<div class="empty">ยังไม่มีข้อมูล</div>`;
+    return;
+  }
+
+  data.forEach(table => {
+    const map = {};
+
+    // รวมยอดตามชื่อ
+    table.rows?.forEach(r => {
+      const nums = r.price?.match(/\d+/g);
+      if (!nums) return;
+
+      let sum = 0;
+      nums.forEach(n => {
+        if (n.length >= 3) sum += parseInt(n);
+      });
+
+      if (sum > 0) {
+        if (r.chaser)
+          map[r.chaser] = (map[r.chaser] || 0) + sum;
+
+        if (r.holder && r.holder !== r.chaser)
+          map[r.holder] = (map[r.holder] || 0) + sum;
+      }
+    });
+
+    const sorted = Object.entries(map)
+      .sort((a,b)=>b[1]-a[1]);
+
+    if (!sorted.length) return;
+
     const box = document.createElement("div");
-    box.style.background="#ffffff";
-    box.style.color="#020617";
-    box.style.borderRadius="16px";
-    box.style.padding="15px";
-    box.style.marginBottom="20px";
+    box.className = "table-box";
 
     box.innerHTML = `
       <h3 style="margin-bottom:10px">🔥 ${table.title}</h3>
-      ${table.players.map((p,i)=>`
-        <div style="display:flex;justify-content:space-between;padding:6px 0">
-          <span>#${i+1} ${p.name}</span>
-          <b>${p.total.toLocaleString()}</b>
+      ${sorted.map(([name,value],i)=>`
+        <div class="row">
+          <span><span class="rank">#${i+1}</span>${name}</span>
+          <span class="amount">${value.toLocaleString()}</span>
         </div>
       `).join("")}
     `;
 
     root.appendChild(box);
   });
-}
-
-function mockClear(){
-  root.innerHTML = "";
-}
+});
