@@ -1,4 +1,3 @@
-/************** FIREBASE INIT **************/
 firebase.initializeApp({
   apiKey: "AIzaSyBQQqfwcPDFPjdzeaMkU4EwpYXkBr256yo",
   authDomain: "admin-rocket-live.firebaseapp.com",
@@ -9,48 +8,33 @@ firebase.initializeApp({
 const db = firebase.database();
 const tbody = document.getElementById("table-body");
 
-/************** STATE (กันกระพริบ / cache) **************/
-let lastRenderedJSON = "";
-let renderTimer = null;
+const totals = {};
+let lastRender = "";
 
-/************** CORE AGGREGATOR **************/
-function aggregate(tables){
-  const map = {};
+db.ref("realtimeEvents").on("child_added", snap => {
+  const d = snap.val();
+  if (!d || !d.amount) return;
 
-  tables.forEach(t=>{
-    t.rows.forEach(r=>{
-      const chaser = r[0]?.trim();
-      const price  = r[1]?.replace(/[Oo]/g,'0');
-      const holder = r[2]?.trim();
-      const nums = price?.match(/\d+/g);
-      if(!nums) return;
+  if (d.chaser) totals[d.chaser] = (totals[d.chaser] || 0) + d.amount;
+  if (d.holder && d.holder !== d.chaser)
+    totals[d.holder] = (totals[d.holder] || 0) + d.amount;
 
-      nums.forEach(n=>{
-        if(n.length>=3){
-          const v = parseInt(n);
-          if(chaser) map[chaser]=(map[chaser]||0)+v;
-          if(holder && holder!==chaser)
-            map[holder]=(map[holder]||0)+v;
-        }
-      });
-    });
-  });
+  render();
+});
 
-  return Object.entries(map)
+function render() {
+  const list = Object.entries(totals)
     .sort((a,b)=>b[1]-a[1])
-    .slice(0,20); // จำกัด TOP 20 (เสถียรกว่า)
-}
+    .slice(0,20);
 
-/************** RENDER **************/
-function render(list){
   const json = JSON.stringify(list);
-  if(json===lastRenderedJSON) return; // ❗ กัน render ซ้ำ
-  lastRenderedJSON=json;
+  if (json === lastRender) return;
+  lastRender = json;
 
-  tbody.innerHTML="";
+  tbody.innerHTML = "";
 
-  if(list.length===0){
-    tbody.innerHTML=`<tr><td colspan="3" class="empty">รอข้อมูล...</td></tr>`;
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="3" class="empty">รอข้อมูล...</td></tr>`;
     return;
   }
 
@@ -60,27 +44,12 @@ function render(list){
     if(i===1) cls="top2";
     if(i===2) cls="top3";
 
-    tbody.innerHTML+=`
+    tbody.innerHTML += `
       <tr class="${cls}">
-        <td class="rank">#${i+1}</td>
+        <td>#${i+1}</td>
         <td>${name}</td>
         <td class="amount">${total.toLocaleString()}</td>
       </tr>
     `;
   });
 }
-
-/************** LISTENER (DEBOUNCE) **************/
-db.ref("realtimeTables").on("value",snap=>{
-  const data = snap.val();
-  if(!data || !data.tables){
-    render([]);
-    return;
-  }
-
-  clearTimeout(renderTimer);
-  renderTimer = setTimeout(()=>{
-    const result = aggregate(data.tables);
-    render(result);
-  },120); // debounce กัน Firebase ยิงถี่
-});
