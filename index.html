@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>🔥 ยอดเล่น Real-Time</title>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase (compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -12,32 +12,73 @@
 
   <style>
     body{
-      background:#020617;
-      padding:20px;
       font-family:Sarabun;
+      background:#020617;
       color:#fff;
+      padding:20px;
     }
-    h2{margin-bottom:20px}
-    .card{
+    .table-card{
       background:#0f172a;
-      border-radius:16px;
-      padding:15px;
-      margin-bottom:20px;
+      border-radius:18px;
+      padding:20px;
+      margin-bottom:25px;
+      box-shadow:0 10px 30px rgba(0,0,0,.4);
     }
-    .row{
-      display:flex;
-      justify-content:space-between;
-      padding:6px 0;
-      border-bottom:1px dashed #334155;
+    h2{margin:0 0 10px}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:10px;
+    }
+    th,td{
+      padding:10px;
+      text-align:center;
+    }
+    th{background:#1e293b}
+    td{background:#020617}
+    .btn{
+      margin-top:12px;
+      padding:8px 14px;
+      border-radius:10px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+    }
+    .btn-summary{background:#f59e0b}
+    .btn-player{background:#22c55e;margin-left:8px}
+    /* modal */
+    .modal{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.7);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+    }
+    .modal-box{
+      background:#fff;
+      color:#000;
+      padding:25px;
+      border-radius:18px;
+      width:90%;
+      max-width:800px;
+      max-height:85vh;
+      overflow:auto;
     }
   </style>
 </head>
 <body>
 
-<h2>🔥 ยอดเล่น Real-Time</h2>
-<div id="viewer-summary">กำลังรอข้อมูล...</div>
+<h1>🔥 ยอดเล่น Real-Time</h1>
 
-<!-- โหลด JS หลัง Firebase -->
+<div id="viewer-root"></div>
+
+<!-- modal -->
+<div id="modal" class="modal" onclick="closeModal(event)">
+  <div class="modal-box" id="modal-content"></div>
+</div>
+
 <script src="viewer.js"></script>
 </body>
 </html>
