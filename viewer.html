@@ -2,49 +2,41 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>ยอดเล่น Real-Time</title>
+  <title>ยอดเล่น Real-Time (TEST)</title>
 
-  <!-- ฟอนต์ -->
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-  <!-- CSS เดิมของคุณ -->
-  <link rel="stylesheet" href="css.css">
 
   <style>
     body{
       background:#020617;
       padding:20px;
       font-family:'Sarabun', sans-serif;
+      color:#fff;
+    }
+    button{
+      padding:10px 16px;
+      border-radius:10px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
     }
   </style>
 </head>
 <body>
 
-  <!-- ✅ คนอื่นจะเห็นแค่กล่องนี้ -->
+  <h2>🧪 TEST : Real-Time Viewer</h2>
+
+  <!-- ปุ่มทดสอบ -->
+  <button onclick="mockAdd()">➕ เพิ่มข้อมูลทดสอบ</button>
+  <button onclick="mockClear()" style="margin-left:10px;background:#ef4444;color:white;">
+    ล้าง
+  </button>
+
+  <hr style="margin:20px 0">
+
+  <!-- ตรงนี้คือของจริงที่คนอื่นจะเห็น -->
   <div id="viewer-summary"></div>
 
-  <!-- 🔴 Firebase config (สำคัญมาก) -->
-  <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBQQqfwcPDFPjdzeaMkU4EwpYXkBr256yo",
-    authDomain: "admin-rocket-live.firebaseapp.com",
-    databaseURL: "https://admin-rocket-live-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "admin-rocket-live",
-    storageBucket: "admin-rocket-live.firebasestorage.app",
-    messagingSenderId: "875303528481",
-    appId: "1:875303528481:web:719af49939623d64225b60",
-    measurementId: "G-NP2MSGPWND"
-  };
-
-    firebase.initializeApp(firebaseConfig);
-  </script>
-
-  <!-- Logic สำหรับ Viewer -->
   <script src="viewer.js"></script>
-
 </body>
 </html>
