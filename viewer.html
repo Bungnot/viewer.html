@@ -2,40 +2,77 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>ยอดเล่น Real-Time (TEST)</title>
+  <title>ยอดเล่น Real-Time</title>
 
+  <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <style>
     body{
       background:#020617;
       padding:20px;
-      font-family:'Sarabun', sans-serif;
+      font-family:'Sarabun',sans-serif;
       color:#fff;
     }
-    button{
-      padding:10px 16px;
-      border-radius:10px;
-      border:none;
-      cursor:pointer;
+    h2{
+      margin-bottom:15px;
+    }
+    .table-box{
+      background:#ffffff;
+      color:#020617;
+      border-radius:16px;
+      padding:15px;
+      margin-bottom:20px;
+      box-shadow:0 8px 20px rgba(0,0,0,.25);
+    }
+    .row{
+      display:flex;
+      justify-content:space-between;
+      padding:6px 0;
+      border-bottom:1px dashed #e5e7eb;
       font-weight:600;
+    }
+    .row:last-child{border-bottom:none;}
+    .rank{
+      color:#64748b;
+      margin-right:6px;
+    }
+    .amount{
+      color:#16a34a;
+      font-weight:700;
+    }
+    .empty{
+      opacity:.6;
+      text-align:center;
+      margin-top:40px;
     }
   </style>
 </head>
 <body>
 
-  <h2>🧪 TEST : Real-Time Viewer</h2>
+  <h2>🔥 ยอดเล่น Real-Time</h2>
 
-  <!-- ปุ่มทดสอบ -->
-  <button onclick="mockAdd()">➕ เพิ่มข้อมูลทดสอบ</button>
-  <button onclick="mockClear()" style="margin-left:10px;background:#ef4444;color:white;">
-    ล้าง
-  </button>
-
-  <hr style="margin:20px 0">
-
-  <!-- ตรงนี้คือของจริงที่คนอื่นจะเห็น -->
+  <!-- แสดงผลตรงนี้เท่านั้น -->
   <div id="viewer-summary"></div>
+
+  <!-- Firebase config (ใช้ตัวเดียวกับ ADMIN) -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQQqfwcPDFPjdzeaMkU4EwpYXkBr256yo",
+      authDomain: "admin-rocket-live.firebaseapp.com",
+      databaseURL: "https://admin-rocket-live-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "admin-rocket-live",
+      storageBucket: "admin-rocket-live.firebasestorage.app",
+      messagingSenderId: "875303528481",
+      appId: "1:875303528481:web:719af49939623d64225b60"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+  </script>
 
   <script src="viewer.js"></script>
 </body>
