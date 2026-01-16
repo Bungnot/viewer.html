@@ -4,62 +4,118 @@
   <meta charset="UTF-8" />
   <title>ยอดเล่น Real-Time</title>
 
-  <!-- Firebase compat (ต้องใช้แบบนี้กับ GitHub Pages) -->
+  <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
     body {
       margin: 0;
-      font-family: Sarabun, sans-serif;
-      background: radial-gradient(circle at top, #020617, #000);
-      color: white;
-      padding: 25px;
+      min-height: 100vh;
+      font-family: 'Sarabun', sans-serif;
+      background: radial-gradient(circle at top, #020617, #000000);
+      color: #e5e7eb;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 15px;
     }
-    h1 {
+
+    .board {
+      width: 100%;
+      max-width: 520px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      border-radius: 22px;
+      padding: 25px 25px 30px;
+      box-shadow:
+        0 25px 60px rgba(0,0,0,0.7),
+        inset 0 0 0 1px rgba(255,255,255,0.06);
+    }
+
+    .title {
+      font-size: 1.5rem;
+      font-weight: 700;
       margin-bottom: 20px;
-    }
-    .camp {
-      background: rgba(255,255,255,0.05);
-      border-radius: 14px;
-      padding: 18px;
-      margin-bottom: 20px;
-    }
-    .camp-title {
-      font-weight: bold;
-      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
       color: #facc15;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.95rem;
     }
-    th, td {
-      padding: 8px;
-      border-bottom: 1px dashed rgba(255,255,255,0.15);
-    }
-    th {
-      color: #94a3b8;
+
+    thead th {
       text-align: left;
+      color: #94a3b8;
+      font-weight: 600;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
     }
-    td:last-child {
+
+    tbody tr {
+      transition: background 0.2s;
+    }
+
+    tbody tr:hover {
+      background: rgba(255,255,255,0.04);
+    }
+
+    td {
+      padding: 10px 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.08);
+    }
+
+    td.rank {
+      width: 40px;
+      color: #facc15;
+      font-weight: 700;
+    }
+
+    td.name {
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    td.amount {
       text-align: right;
-      font-weight: bold;
+      font-weight: 700;
       color: #22c55e;
+      letter-spacing: 0.5px;
     }
+
     .empty {
+      text-align: center;
+      padding: 35px 0;
       color: #64748b;
       font-style: italic;
+    }
+
+    .footer {
       text-align: center;
-      margin-top: 30px;
+      margin-top: 20px;
+      font-size: 0.75rem;
+      color: #475569;
+      letter-spacing: 1px;
     }
   </style>
 </head>
 
 <body>
-  <h1>🔥 ยอดเล่น Real-Time</h1>
-  <div id="viewer-summary"></div>
+  <div class="board">
+    <div class="title">🔥 ยอดเล่น Real-Time</div>
+
+    <div id="viewer-content">
+      <div class="empty">รอข้อมูลจากระบบ…</div>
+    </div>
+
+    <div class="footer">ADMIN ROCKET LIVE</div>
+  </div>
 
   <script src="viewer.js"></script>
 </body>
