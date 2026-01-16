@@ -4,21 +4,21 @@
   <meta charset="UTF-8">
   <title>🔥 ยอดเล่น Real-Time</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
     body{
       background:#020617;
       padding:20px;
-      font-family:'Sarabun',sans-serif;
+      font-family:Sarabun;
       color:#fff;
     }
-    .table-box{
-      background:#fff;
-      color:#020617;
+    h2{margin-bottom:20px}
+    .card{
+      background:#0f172a;
       border-radius:16px;
       padding:15px;
       margin-bottom:20px;
@@ -27,34 +27,15 @@
       display:flex;
       justify-content:space-between;
       padding:6px 0;
-      border-bottom:1px dashed #e5e7eb;
-      font-weight:600;
+      border-bottom:1px dashed #334155;
     }
-    .row:last-child{border-bottom:none;}
-    .amount{color:#16a34a}
-    .empty{text-align:center;opacity:.6}
   </style>
 </head>
-
 <body>
 
-  <h2>🔥 ยอดเล่น Real-Time</h2>
-  <div id="viewer-summary" class="empty">กำลังรอข้อมูล…</div>
+<h2>🔥 ยอดเล่น Real-Time</h2>
+<div id="viewer-summary">ยังไม่มีข้อมูล</div>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBQQqfwcPDFPjdzeaMkU4EwpYXkBr256yo",
-      authDomain: "admin-rocket-live.firebaseapp.com",
-      databaseURL: "https://admin-rocket-live-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "admin-rocket-live",
-      storageBucket: "admin-rocket-live.firebasestorage.app",
-      messagingSenderId: "875303528481",
-      appId: "1:875303528481:web:719af49939623d64225b60"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-  </script>
-
-  <script src="viewer.js"></script>
+<script src="viewer.js"></script>
 </body>
 </html>
