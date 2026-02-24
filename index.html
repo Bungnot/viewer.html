@@ -1,86 +1,573 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8" />
-<title>🔥 ยอดเล่น Real-Time</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>เช็คประวัติบั้งไฟปี 2569</title>
+  <style>
+    :root {
+      --bg1: #0f172a;
+      --bg2: #1e293b;
+      --card: rgba(255,255,255,0.08);
+      --card-border: rgba(255,255,255,0.15);
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --primary: #38bdf8;
+      --primary-2: #0ea5e9;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --shadow: 0 20px 50px rgba(0,0,0,0.35);
+      --radius: 18px;
+    }
 
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    * { box-sizing: border-box; }
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 20%, rgba(56,189,248,0.12), transparent 30%),
+        radial-gradient(circle at 90% 10%, rgba(14,165,233,0.12), transparent 35%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      min-height: 100vh;
+    }
 
-<style>
-body{
-  margin:0;
-  font-family:'Sarabun',sans-serif;
-  background:radial-gradient(circle at top,#0f172a,#020617);
-  color:white;
-}
-.container{
-  max-width:420px;
-  margin:40px auto;
-  padding:20px;
-}
-h1{
-  text-align:center;
-  margin-bottom:20px;
-}
-.card{
-  background:rgba(255,255,255,.06);
-  border-radius:18px;
-  padding:15px;
-}
-.row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:10px 0;
-  border-bottom:1px dashed rgba(255,255,255,.15);
-}
-.row:last-child{border:none;}
-.rank{
-  width:28px;
-  text-align:center;
-  font-weight:700;
-  color:#facc15;
-}
-.name{
-  flex:1;
-  margin-left:8px;
-}
-.amount{
-  color:#22c55e;
-  font-weight:700;
-}
-.actions{
-  display:flex;
-  gap:6px;
-}
-button{
-  border:none;
-  border-radius:8px;
-  padding:4px 8px;
-  cursor:pointer;
-  font-size:.75rem;
-}
-.btn-clear{background:#dc2626;color:white;}
-.btn-minus{background:#f59e0b;color:black;}
-input{
-  width:70px;
-  border-radius:6px;
-  border:none;
-  padding:4px;
-  font-size:.7rem;
-}
-</style>
+    .container {
+      width: min(1100px, 92%);
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      box-shadow: 0 10px 30px rgba(56,189,248,0.35);
+      font-size: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .view {
+      display: none;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .view.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Home */
+    .hero {
+      min-height: 70vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .hero-box {
+      text-align: center;
+      padding: 36px;
+      width: min(760px, 100%);
+    }
+
+    .hero-title {
+      margin: 0 0 10px;
+      font-size: clamp(1.5rem, 4vw, 2.4rem);
+      line-height: 1.25;
+      font-weight: 800;
+    }
+
+    .hero-sub {
+      margin: 0 0 24px;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .main-btn {
+      border: none;
+      border-radius: 16px;
+      padding: 18px 28px;
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: #06243a;
+      background: linear-gradient(135deg, #7dd3fc, #38bdf8, #0ea5e9);
+      cursor: pointer;
+      box-shadow: 0 14px 35px rgba(14,165,233,0.35);
+      transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    }
+
+    .main-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 40px rgba(14,165,233,0.45);
+      filter: brightness(1.03);
+    }
+
+    .main-btn:active { transform: translateY(0); }
+
+    /* List View */
+    .section-card {
+      padding: 18px;
+    }
+
+    .section-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .btn {
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 600;
+    }
+
+    .btn:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    .camp-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .camp-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+
+    .camp-item:hover {
+      transform: translateY(-1px);
+      border-color: rgba(56,189,248,0.35);
+    }
+
+    .camp-name {
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .camp-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #38bdf8, #22d3ee);
+      box-shadow: 0 0 12px rgba(56,189,248,0.6);
+      flex-shrink: 0;
+    }
+
+    .camp-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .action-btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-weight: 700;
+      color: white;
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      box-shadow: 0 8px 20px rgba(14,165,233,0.25);
+      transition: transform 0.12s ease, filter 0.15s ease;
+    }
+
+    .action-btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+
+    /* Detail View */
+    .detail-wrap {
+      display: grid;
+      gap: 16px;
+    }
+
+    .detail-card {
+      padding: 20px;
+    }
+
+    .detail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .detail-name {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 800;
+    }
+
+    .detail-sub {
+      color: var(--muted);
+      margin-top: 4px;
+      font-size: 0.92rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .stat-box {
+      border-radius: 14px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pill {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .pill.win { background: var(--success); }
+    .pill.lose { background: var(--danger); }
+    .pill.draw { background: var(--warning); }
+
+    .stat-value {
+      font-size: 1.7rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .summary-card {
+      padding: 18px;
+    }
+
+    .summary-title {
+      margin: 0 0 12px;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .bars {
+      display: grid;
+      gap: 10px;
+    }
+
+    .bar-row {
+      display: grid;
+      gap: 6px;
+    }
+
+    .bar-top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .bar-track {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: inherit;
+    }
+
+    .fill-win { background: linear-gradient(90deg, #16a34a, #4ade80); }
+    .fill-lose { background: linear-gradient(90deg, #dc2626, #f87171); }
+    .fill-draw { background: linear-gradient(90deg, #d97706, #fbbf24); }
+
+    .footer-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    @media (max-width: 720px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .camp-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .camp-actions {
+        width: 100%;
+      }
+      .action-btn {
+        width: 100%;
+      }
+      .main-btn {
+        width: 100%;
+      }
+      .hero-box {
+        padding: 24px 16px;
+      }
+    }
+  </style>
 </head>
-
 <body>
-<div class="container">
-  <h1>🔥 ยอดเล่น Real-Time</h1>
-  <div class="card" id="list"></div>
-</div>
+  <div class="container">
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-badge">🚀</div>
+        <div>ระบบเช็คประวัติบั้งไฟ</div>
+      </div>
+    </header>
 
-<script src="viewer.js"></script>
+    <!-- หน้าแรก -->
+    <section id="homeView" class="view active">
+      <div class="hero">
+        <div class="hero-box card">
+          <h1 class="hero-title">เช็คประวัติบั้งไฟ ปี 2569</h1>
+          <p class="hero-sub">กดปุ่มด้านล่างเพื่อดูรายชื่อค่าย และตรวจสอบสถิติย้อนหลังแต่ละค่าย</p>
+          <button class="main-btn" id="goToListBtn">เช็คประวัติบั้งไฟปี 2569</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- หน้ารายชื่อค่าย -->
+    <section id="listView" class="view">
+      <div class="section-card card">
+        <div class="section-top">
+          <h2 class="section-title">รายชื่อค่ายบั้งไฟ</h2>
+          <button class="btn" id="backToHomeBtn">← กลับหน้าแรก</button>
+        </div>
+        <div id="campList" class="camp-list"></div>
+      </div>
+    </section>
+
+    <!-- หน้ารายละเอียดค่าย -->
+    <section id="detailView" class="view">
+      <div class="detail-wrap">
+        <div class="detail-card card">
+          <div class="detail-header">
+            <div>
+              <h2 id="detailName" class="detail-name">ชื่อค่าย</h2>
+              <div class="detail-sub">สถิติการแข่งขันบั้งไฟของค่ายนี้</div>
+            </div>
+            <button class="btn" id="backToListBtn">← กลับไปรายชื่อค่าย</button>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-box">
+              <div class="stat-label"><span class="pill win"></span>ชนะ</div>
+              <div class="stat-value" id="winCount">0</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label"><span class="pill lose"></span>แพ้</div>
+              <div class="stat-value" id="loseCount">0</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label"><span class="pill draw"></span>จาว</div>
+              <div class="stat-value" id="drawCount">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="summary-card card">
+          <h3 class="summary-title">สรุปเปอร์เซ็นต์</h3>
+          <div class="bars">
+            <div class="bar-row">
+              <div class="bar-top"><span>ชนะ</span><span id="winPercent">0%</span></div>
+              <div class="bar-track"><div id="winBar" class="bar-fill fill-win" style="width:0%"></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-top"><span>แพ้</span><span id="losePercent">0%</span></div>
+              <div class="bar-track"><div id="loseBar" class="bar-fill fill-lose" style="width:0%"></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-top"><span>จาว</span><span id="drawPercent">0%</span></div>
+              <div class="bar-track"><div id="drawBar" class="bar-fill fill-draw" style="width:0%"></div></div>
+            </div>
+          </div>
+          <div class="footer-note" id="totalMatchText">รวมทั้งหมด 0 รอบ</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // ===== ข้อมูลตัวอย่าง (แก้ชื่อค่ายและสถิติได้ตรงนี้) =====
+    const camps = [
+      { id: 1, name: "ค่ายพญาแถน", win: 12, lose: 5, draw: 2 },
+      { id: 2, name: "ค่ายสายฟ้า", win: 9, lose: 7, draw: 1 },
+      { id: 3, name: "ค่ายสุริยัน", win: 15, lose: 3, draw: 0 },
+      { id: 4, name: "ค่ายนาคี", win: 8, lose: 8, draw: 2 },
+      { id: 5, name: "ค่ายบุญบั้งไฟ", win: 11, lose: 6, draw: 3 },
+      { id: 6, name: "ค่ายดาวเหนือ", win: 6, lose: 10, draw: 1 },
+      { id: 7, name: "ค่ายแสนชัย", win: 13, lose: 4, draw: 2 }
+    ];
+
+    // ===== จัดการ View =====
+    const homeView = document.getElementById("homeView");
+    const listView = document.getElementById("listView");
+    const detailView = document.getElementById("detailView");
+
+    function showView(viewName) {
+      [homeView, listView, detailView].forEach(v => v.classList.remove("active"));
+      if (viewName === "home") homeView.classList.add("active");
+      if (viewName === "list") listView.classList.add("active");
+      if (viewName === "detail") detailView.classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // ===== ปุ่มนำทาง =====
+    document.getElementById("goToListBtn").addEventListener("click", () => {
+      renderCampList();
+      showView("list");
+    });
+
+    document.getElementById("backToHomeBtn").addEventListener("click", () => {
+      showView("home");
+    });
+
+    document.getElementById("backToListBtn").addEventListener("click", () => {
+      showView("list");
+    });
+
+    // ===== แสดงรายชื่อค่าย =====
+    const campListEl = document.getElementById("campList");
+
+    function renderCampList() {
+      campListEl.innerHTML = "";
+
+      camps.forEach((camp, index) => {
+        const item = document.createElement("div");
+        item.className = "camp-item";
+
+        item.innerHTML = `
+          <div class="camp-name">
+            <span class="camp-dot"></span>
+            <span>${index + 1}. ${camp.name}</span>
+          </div>
+          <div class="camp-actions">
+            <button class="action-btn" data-id="${camp.id}">เช็คประวัติค่ายนี้</button>
+          </div>
+        `;
+
+        campListEl.appendChild(item);
+      });
+
+      // ผูก event ให้ปุ่มแต่ละรายการ
+      campListEl.querySelectorAll(".action-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const id = Number(e.target.getAttribute("data-id"));
+          const selectedCamp = camps.find(c => c.id === id);
+          if (selectedCamp) {
+            showCampDetail(selectedCamp);
+            showView("detail");
+          }
+        });
+      });
+    }
+
+    // ===== แสดงรายละเอียดค่าย =====
+    const detailName = document.getElementById("detailName");
+    const winCount = document.getElementById("winCount");
+    const loseCount = document.getElementById("loseCount");
+    const drawCount = document.getElementById("drawCount");
+
+    const winBar = document.getElementById("winBar");
+    const loseBar = document.getElementById("loseBar");
+    const drawBar = document.getElementById("drawBar");
+
+    const winPercent = document.getElementById("winPercent");
+    const losePercent = document.getElementById("losePercent");
+    const drawPercent = document.getElementById("drawPercent");
+    const totalMatchText = document.getElementById("totalMatchText");
+
+    function showCampDetail(camp) {
+      detailName.textContent = camp.name;
+      winCount.textContent = camp.win;
+      loseCount.textContent = camp.lose;
+      drawCount.textContent = camp.draw;
+
+      const total = camp.win + camp.lose + camp.draw;
+      const wP = total ? Math.round((camp.win / total) * 100) : 0;
+      const lP = total ? Math.round((camp.lose / total) * 100) : 0;
+      const dP = total ? Math.round((camp.draw / total) * 100) : 0;
+
+      winBar.style.width = wP + "%";
+      loseBar.style.width = lP + "%";
+      drawBar.style.width = dP + "%";
+
+      winPercent.textContent = wP + "%";
+      losePercent.textContent = lP + "%";
+      drawPercent.textContent = dP + "%";
+
+      totalMatchText.textContent = `รวมทั้งหมด ${total} รอบ`;
+    }
+  </script>
 </body>
 </html>
