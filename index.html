@@ -21,7 +21,7 @@
        --------------------------------------------------- */
     #welcome-screen {
       position: fixed; inset: 0;
-      background: #000; /* พื้นดำให้ปุ่มเด่น */
+      background: #000;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       z-index: 99999; padding: 20px; text-align: center;
     }
@@ -36,7 +36,7 @@
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
     /* ---------------------------------------------------
-       2. หน้าหลัก (ค้นหา + ปุ่มแดง) ตามรูปเป๊ะๆ
+       2. หน้าหลัก (ค้นหา + ปุ่มแดง)
        --------------------------------------------------- */
     .app { padding: 20px; max-width: 1000px; margin: 0 auto; padding-bottom: 100px; }
     
@@ -44,6 +44,20 @@
       text-align: center; font-size: 2.5rem; color: #7f1d1d; font-weight: 900; margin-bottom: 20px;
     }
     
+    /* กล่องข้อความแนะนำวิธีใช้งาน */
+    .instruction-box {
+      background: #fffbeb; 
+      border: 3px dashed #f59e0b; 
+      color: #b45309;
+      padding: 20px;
+      border-radius: 15px;
+      font-size: 1.6rem;
+      text-align: center;
+      margin-bottom: 25px;
+      line-height: 1.5;
+      font-weight: bold;
+    }
+
     .search-wrap { margin-bottom: 30px; }
     .search-wrap input {
       width: 100%; padding: 20px; font-size: 1.8rem; border: 3px solid #7f1d1d;
@@ -54,7 +68,6 @@
     /* Grid ปุ่มค่ายสีแดง */
     .camp-grid {
       display: grid;
-      /* ในมือถือจะแสดง 2 คอลัมน์ ถ้าจอใหญ่จะเพิ่มขึ้นเองอัตโนมัติ */
       grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
       gap: 15px;
     }
@@ -145,8 +158,13 @@
   <div class="app">
     <div class="header-title">ค้นหาชื่อค่าย</div>
     
+    <div class="instruction-box">
+      📢 <b>วิธีใช้งาน:</b><br> 
+      ให้ลูกค้าเลือกกดปุ่ม <span style="color:var(--red-btn);">"ชื่อค่าย"</span> ด้านล่างที่ต้องการ<br>เพื่อเข้าชมประวัติทั้งหมดได้เลยครับ
+    </div>
+
     <div class="search-wrap">
-      <input id="searchInput" type="text" placeholder="พิมพ์ชื่อค่ายตรงนี้..." />
+      <input id="searchInput" type="text" placeholder="พิมพ์ชื่อค่ายตรงนี้เพื่อค้นหา..." />
     </div>
 
     <div id="campGrid" class="camp-grid">
@@ -405,16 +423,16 @@
             <div class="val">${stats.total}</div>
           </div>
           <div class="stat-box">
-            <div class="label">คะแนนเฉลี่ย</div>
-            <div class="val">${stats.avgScore}</div>
-          </div>
-          <div class="stat-box">
             <div class="label">ชนะ ✅</div>
             <div class="val">${stats.win}</div>
           </div>
           <div class="stat-box">
-            <div class="label">แพ้/จาว ❌⛔️</div>
-            <div class="val">${stats.lose + stats.jao}</div>
+            <div class="label">แพ้ ❌</div>
+            <div class="val">${stats.lose}</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">จาว ⛔️</div>
+            <div class="val">${stats.jao}</div>
           </div>
         </div>
 
