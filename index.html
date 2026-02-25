@@ -5,505 +5,632 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ระบบเช็คประวัติบั้งไฟแต่ละค่าย</title>
   <style>
-    :root {
-      --bg: #0f172a;
-      --card: rgba(255,255,255,0.05);
-      --card-border: rgba(255,255,255,0.12);
-      --text: #e5e7eb;
-      --muted: #94a3b8;
-      --primary: #38bdf8;
-      --primary2: #22d3ee;
-      --success: #22c55e;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-      --radius: 16px;
-      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+    :root{
+      --bg:#071225;
+      --bg2:#0b1b35;
+      --card:#0e203d;
+      --card2:#12284a;
+      --line:rgba(255,255,255,.10);
+      --text:#eaf1ff;
+      --muted:#9db0cc;
+      --primary:#33c3ff;
+      --primary2:#18e0c4;
+      --success:#22c55e;
+      --danger:#ef4444;
+      --warn:#f59e0b;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --radius:20px; /* ปรับให้ขอบมนขึ้นดูสบายตา */
     }
 
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: "Segoe UI", Tahoma, sans-serif;
-      color: var(--text);
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
+      color:var(--text);
       background:
-        radial-gradient(circle at 10% 10%, rgba(56,189,248,.12), transparent 35%),
-        radial-gradient(circle at 90% 20%, rgba(34,211,238,.10), transparent 35%),
-        var(--bg);
-      min-height: 100vh;
+        radial-gradient(600px 250px at 10% 0%, rgba(51,195,255,.18), transparent 60%),
+        radial-gradient(600px 300px at 100% 0%, rgba(24,224,196,.10), transparent 55%),
+        linear-gradient(180deg,var(--bg), #050d1b 75%);
+      min-height:100vh;
+      font-size: 18px; /* ขยายขนาดตัวอักษรพื้นฐานสำหรับผู้สูงอายุ */
     }
 
-    .container {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 14px 14px 84px;
-    }
-
-    .header {
-      background: linear-gradient(135deg, rgba(56,189,248,0.12), rgba(34,211,238,0.08));
-      border: 1px solid var(--card-border);
-      border-radius: 22px;
-      padding: 18px;
-      margin-bottom: 14px;
-      box-shadow: var(--shadow);
-    }
-
-    .header h1 {
-      margin: 0 0 4px;
-      font-size: 1.4rem;
-      font-weight: 800;
-    }
-
-    .header p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.92rem;
-    }
-
-    .search-box {
-      margin-top: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 10px 12px;
-      background: rgba(255,255,255,.03);
-    }
-
-    .search-box input {
-      width: 100%;
-      border: none;
-      outline: none;
-      background: transparent;
-      color: var(--text);
-      font-size: 1rem;
-    }
-    .search-box input::placeholder { color: #9aa4b2; }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
-
-    @media (min-width: 950px) {
-      .layout { grid-template-columns: 1.05fr 1fr; }
-    }
-
-    .panel {
-      border: 1px solid var(--card-border);
-      border-radius: 18px;
-      overflow: hidden;
-      background: rgba(255,255,255,.03);
-      box-shadow: var(--shadow);
-    }
-
-    .panel-title {
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      background: rgba(255,255,255,.02);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      font-weight: 700;
-    }
-
-    .panel-body { padding: 14px; }
-
-    .muted { color: var(--muted); font-size: .88rem; }
-
-    .camp-grid {
-      display: grid;
-      gap: 10px;
-    }
-
-    .camp-card {
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 14px;
-      padding: 12px;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-      align-items: center;
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
-    }
-
-    .camp-name {
-      font-weight: 700;
-      margin-bottom: 4px;
-      word-break: break-word;
-    }
-
-    .camp-sub {
-      color: var(--muted);
-      font-size: .86rem;
-    }
-
-    .btn {
-      border: none;
-      cursor: pointer;
-      color: white;
-      font-weight: 700;
-      border-radius: 12px;
-      padding: 10px 12px;
-      transition: .15s;
-      white-space: nowrap;
-    }
-    .btn:hover { transform: translateY(-1px); }
-    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary2)); }
-    .btn-success { background: linear-gradient(135deg, #16a34a, #22c55e); }
-    .btn-secondary {
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.08);
-    }
-    .btn-danger { background: linear-gradient(135deg, #dc2626, #ef4444); }
-
-    .btn-mini {
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      color: var(--text);
-      border-radius: 8px;
-      padding: 4px 8px;
-      font-size: .75rem;
-      cursor: pointer;
-    }
-    .btn-mini:hover { background: rgba(255,255,255,.08); }
-    .btn-mini-danger {
-      border-color: rgba(239,68,68,.25);
-      color: #fca5a5;
-    }
-
-    .detail-empty {
-      border: 1px dashed rgba(255,255,255,.14);
-      border-radius: 12px;
-      color: var(--muted);
-      text-align: center;
-      padding: 24px 12px;
-    }
-
-    .detail-header h2 {
-      margin: 0 0 4px;
-      font-size: 1.1rem;
-    }
-    .detail-header .hint {
-      color: var(--muted);
-      font-size: .88rem;
-      margin-bottom: 10px;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .stat-card {
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 12px;
-      padding: 10px;
-      background: rgba(255,255,255,.02);
-    }
-
-    .stat-card.big {
-      grid-column: 1 / -1;
-      background: linear-gradient(135deg, rgba(56,189,248,.12), rgba(34,211,238,.06));
-      border-color: rgba(56,189,248,.22);
-    }
-
-    .stat-label { color: var(--muted); font-size: .8rem; margin-bottom: 4px; }
-    .stat-value { font-weight: 800; }
-
-    .legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .legend-badge {
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 999px;
-      padding: 5px 10px;
-      font-size: .82rem;
-      background: rgba(255,255,255,.02);
-    }
-
-    .history-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 450px;
-      overflow: auto;
-      padding-right: 4px;
-    }
-
-    .history-item {
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 12px;
-      padding: 10px;
-      background: rgba(255,255,255,.02);
-    }
-
-    .history-line {
-      font-weight: 700;
-      margin-bottom: 6px;
-      word-break: break-word;
-    }
-
-    .history-meta {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-      color: var(--muted);
-      font-size: .84rem;
-    }
-
-    .badge {
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-size: .78rem;
-      font-weight: 700;
-      border: 1px solid transparent;
-    }
-    .badge-win  { background: rgba(34,197,94,.12); color: #86efac; border-color: rgba(34,197,94,.25); }
-    .badge-lose { background: rgba(239,68,68,.12); color: #fca5a5; border-color: rgba(239,68,68,.25); }
-    .badge-jao  { background: rgba(245,158,11,.12); color: #fde68a; border-color: rgba(245,158,11,.25); }
-
-    .admin-fab {
-      position: fixed;
-      right: 16px;
-      bottom: 16px;
-      z-index: 50;
-      border: none;
-      cursor: pointer;
-      color: white;
-      font-weight: 800;
-      border-radius: 999px;
-      padding: 12px 14px;
-      background: linear-gradient(135deg, #7c3aed, #2563eb);
-      box-shadow: 0 12px 24px rgba(37,99,235,.35);
-    }
-
-    .modal {
+    /* --- หน้าต่างต้อนรับ (Welcome Screen) --- */
+    #welcome-screen {
       position: fixed;
       inset: 0;
-      background: rgba(2,6,23,.75);
-      display: none;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      z-index: 100;
-      padding: 16px;
+      z-index: 99999;
+      padding: 20px;
+      text-align: center;
     }
-    .modal.show { display: flex; }
+    .welcome-btn {
+      background: var(--primary);
+      color: #000;
+      border: none;
+      padding: 30px 20px;
+      border-radius: var(--radius);
+      font-size: 2.2rem;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 0 30px rgba(51,195,255,0.4);
+      width: 100%;
+      max-width: 450px;
+      line-height: 1.4;
+      animation: pulse 2s infinite;
+    }
+    .welcome-sub {
+      margin-top: 25px;
+      font-size: 1.8rem;
+      color: var(--primary);
+      font-weight: bold;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+    /* --------------------------------- */
 
-    .modal-card {
-      width: min(760px, 100%);
-      max-height: 92vh;
-      overflow: auto;
-      border-radius: 18px;
-      background: #0b1220;
-      border: 1px solid rgba(255,255,255,.12);
+    .app{
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 15px 15px 100px;
+    }
+
+    /* Header */
+    .hero{
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:2px solid var(--primary);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 10px;
+      z-index: 5;
+      backdrop-filter: blur(10px);
+      text-align: center;
+    }
+    .hero h1{
+      margin:0;
+      font-size:1.6rem;
+      line-height:1.3;
+      font-weight:800;
+      color: var(--primary);
+    }
+    .hero p{
+      margin:8px 0 0;
+      color:var(--text);
+      font-size:1.1rem;
+      line-height:1.4;
+    }
+
+    .search-wrap{
+      margin-top:15px;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--primary);
+      border-radius: 16px;
+      padding: 12px 15px;
+    }
+    .search-wrap span { font-size: 1.5rem; }
+    .search-wrap input{
+      flex:1;
+      border:none;
+      background:transparent;
+      color:var(--text);
+      outline:none;
+      font-size:1.3rem;
+    }
+    .search-wrap input::placeholder{color:#8ea5c7}
+    .clear-btn{
+      border:none;
+      background:rgba(255,255,255,.1);
+      color:white;
+      border-radius:10px;
+      padding:8px 15px;
+      font-size:1rem;
+      cursor:pointer;
+      display:none;
+    }
+
+    /* Layout */
+    .grid{
+      margin-top:20px;
+      display:grid;
+      grid-template-columns:1fr;
+      gap:20px;
+    }
+    @media (min-width: 980px){
+      .grid{grid-template-columns: 0.95fr 1.05fr;}
+    }
+
+    .panel{
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .panel-head{
+      padding:15px 20px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      background:rgba(255,255,255,.03);
+    }
+    .panel-head .title{
+      font-weight:800;
+      font-size:1.3rem;
+      color: var(--primary);
+    }
+    .panel-head .sub{
+      color:var(--muted);
+      font-size:1rem;
+      white-space:nowrap;
+    }
+    .panel-body{padding:15px}
+
+    /* Camp list */
+    .camp-list{
+      display:flex;
+      flex-direction:column;
+      gap:15px;
+      max-height: 62vh;
+      overflow:auto;
+      padding-right:5px;
+    }
+    @media (max-width: 979px){
+      .camp-list{max-height:none}
+    }
+    .camp-item{
+      border:2px solid transparent;
+      border-radius:16px;
+      background: var(--card2);
+      padding:15px;
+      display:flex;
+      flex-direction: column;
+      gap:12px;
+    }
+    .camp-item.active{
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(51,195,255,.2);
+      background: #1a3661;
+    }
+    .camp-left{ min-width:0; }
+    .camp-title{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:800;
+      font-size:1.4rem;
+      margin-bottom:8px;
+      min-width:0;
+    }
+    .rank{
+      min-width:32px;height:32px;
+      display:inline-flex;align-items:center;justify-content:center;
+      border-radius:999px;
+      font-size:1rem;
+      color:#000;
+      background:linear-gradient(135deg,var(--primary),var(--primary2));
+      font-weight:800;
+    }
+    .camp-name{
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .camp-meta{
+      color:var(--text);
+      font-size:1rem;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      line-height:1.4;
+    }
+    .camp-meta span {
+      background: rgba(0,0,0,0.2);
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .camp-btn{
+      border:none;
+      border-radius:12px;
+      padding:15px 20px;
+      width: 100%;
+      color:#000;
+      font-weight:900;
+      font-size:1.2rem;
+      background:linear-gradient(135deg,var(--primary),var(--primary2));
+      cursor:pointer;
+      box-shadow: 0 4px 15px rgba(51,195,255,0.3);
+    }
+
+    /* Detail */
+    .detail-empty{
+      border:2px dashed rgba(255,255,255,.2);
+      border-radius:16px;
+      padding:30px 15px;
+      color:var(--text);
+      text-align:center;
+      font-size:1.2rem;
+      line-height:1.5;
+    }
+
+    .detail-top{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-bottom:15px;
+    }
+    .detail-title{
+      font-size:1.8rem;
+      font-weight:900;
+      line-height:1.35;
+      color: var(--primary);
+      word-break:break-word;
+    }
+    .detail-hint{
+      color:var(--muted);
+      font-size:1.1rem;
+    }
+
+    .inline-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    .mini-btn{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.1);
+      color:white;
+      border-radius:10px;
+      padding:10px 15px;
+      font-size:1rem;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .mini-btn.danger{ border-color:var(--danger); background:rgba(239,68,68,.1); color:#ffc0c0; }
+
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+      margin:15px 0;
+    }
+    .stat{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:15px;
+      background: rgba(255,255,255,.05);
+      text-align: center;
+    }
+    .stat.big{
+      grid-column:1/-1;
+      background: linear-gradient(135deg, rgba(51,195,255,.15), rgba(24,224,196,.08));
+      border: 2px solid var(--primary);
+    }
+    .stat .label{
+      color:var(--muted);
+      font-size:1rem;
+      margin-bottom:8px;
+    }
+    .stat .val{
+      font-weight:900;
+      font-size:1.5rem;
+      color: #fff;
+    }
+    .stat.big .val { font-size: 2.2rem; color: var(--primary2); }
+
+    .legend{
+      display:flex; flex-wrap:wrap; gap:10px;
+      margin-bottom:15px; justify-content: center;
+    }
+    .legend span{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.05);
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:1rem;
+      color:var(--text);
+    }
+
+    .history-list{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      max-height: 52vh;
+      overflow:auto;
+      padding-right:5px;
+    }
+    @media (max-width: 979px){
+      .history-list{max-height:none}
+    }
+
+    .history{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:15px;
+      background: var(--card2);
+    }
+    .history-line{
+      font-weight:800;
+      font-size:1.3rem;
+      line-height:1.4;
+      word-break:break-word;
+    }
+    .history-row{
+      margin-top:10px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      color:var(--text);
+      font-size:1.1rem;
+    }
+    .pill{
+      border-radius:999px;
+      padding:6px 12px;
+      font-size:1rem;
+      font-weight:800;
+      border:1px solid transparent;
+    }
+    .pill.win{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.4);color:#a7f3c1}
+    .pill.lose{background:rgba(239,68,68,.2);border-color:rgba(239,68,68,.4);color:#fecaca}
+    .pill.jao{background:rgba(245,158,11,.2);border-color:rgba(245,158,11,.4);color:#fde68a}
+
+    /* Admin FAB */
+    .fab{
+      position:fixed;
+      right:20px; bottom:20px;
+      z-index:30;
+      border:none;
+      border-radius:999px;
+      padding:15px 20px;
+      font-weight:900;
+      font-size: 1.2rem;
+      color:#fff;
+      cursor:pointer;
+      background: linear-gradient(135deg,#7c3aed,#2563eb);
+      box-shadow: 0 10px 24px rgba(37,99,235,.5);
+    }
+
+    /* Modal */
+    .modal{
+      position:fixed; inset:0;
+      background: rgba(2,6,23,.85);
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      z-index:50;
+      padding:0;
+    }
+    .modal.show{display:flex}
+    .sheet{
+      width:100%;
+      max-width:760px;
+      background:#091324;
+      border:1px solid var(--line);
+      border-radius:24px 24px 0 0;
+      max-height:90vh;
+      overflow:auto;
       box-shadow: var(--shadow);
     }
-
-    .modal-header {
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
+    @media (min-width:700px){
+      .modal{align-items:center; padding:20px;}
+      .sheet{border-radius:24px;}
     }
-
-    .icon-btn {
-      border: 1px solid rgba(255,255,255,.12);
-      background: transparent;
-      color: var(--text);
-      border-radius: 10px;
-      padding: 6px 10px;
-      cursor: pointer;
+    .sheet-head{
+      position:sticky;
+      top:0;
+      background:#091324;
+      z-index:1;
+      border-bottom:1px solid rgba(255,255,255,.1);
+      padding:15px 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
     }
-
-    .modal-body { padding: 14px; display: grid; gap: 12px; }
-
-    .form-card {
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 14px;
-      background: rgba(255,255,255,.02);
-      padding: 12px;
+    .sheet-title{font-weight:900; font-size:1.4rem;}
+    .x-btn{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.1);
+      color:white;
+      border-radius:12px;
+      padding:10px 15px;
+      font-size: 1.1rem;
+      cursor:pointer;
     }
+    .sheet-body{padding:20px; display:grid; gap:15px;}
 
-    .form-card h3 { margin: 0 0 10px; font-size: .98rem; }
-
-    .form-grid {
-      display: grid;
-      gap: 8px;
-      grid-template-columns: 1fr;
+    .status-box{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:15px;
+      background: rgba(255,255,255,.05);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
     }
+    .status-text{font-size:1.1rem;color:var(--text)}
 
-    @media (min-width: 700px) {
-      .form-grid.cols-2 { grid-template-columns: 1fr 1fr; }
-      .form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
-    }
-
-    .field { display: grid; gap: 6px; }
-    .field label { color: var(--muted); font-size: .84rem; }
-
-    .field input, .field select {
-      width: 100%;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,.12);
+    .card{
+      border:1px solid var(--line);
+      border-radius:16px;
       background: rgba(255,255,255,.03);
-      color: var(--text);
-      padding: 10px 12px;
-      outline: none;
+      padding:20px;
+    }
+    .card h3{
+      margin:0 0 15px;
+      font-size:1.3rem;
+      color: var(--primary);
     }
 
-    .actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 8px;
+    .form-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+    @media (min-width:650px){
+      .form-grid.cols-2{grid-template-columns:1fr 1fr}
+      .form-grid.cols-3{grid-template-columns:1fr 1fr 1fr}
+    }
+    .field{display:grid; gap:8px}
+    .field label{font-size:1rem;color:var(--muted)}
+    .field input,.field select{
+      width:100%;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.05);
+      color:white;
+      outline:none;
+      border-radius:12px;
+      padding:15px;
+      font-size:1.2rem;
     }
 
-    .status-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
+    .action-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:15px;
+    }
+    .main-btn{
+      border:none;
+      border-radius:14px;
+      padding:15px 20px;
+      color:#fff;
+      font-size:1.2rem;
+      font-weight:900;
+      cursor:pointer;
+      width: 100%;
+    }
+    @media (min-width:650px){ .main-btn { width: auto; } }
+    .main-btn.primary{background:linear-gradient(135deg,var(--primary),var(--primary2)); color:#000;}
+    .main-btn.green{background:linear-gradient(135deg,#16a34a,#22c55e)}
+    .main-btn.gray{
+      background:rgba(255,255,255,.1);
+      border:1px solid var(--line);
+      color:var(--text);
     }
 
-    .note {
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: .82rem;
-    }
-
-    .footer-note {
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: .82rem;
-    }
-
-    .loading {
-      color: var(--muted);
-      padding: 10px 0;
-    }
+    .note{margin-top:10px; color:var(--muted); font-size:1rem; line-height:1.4}
   </style>
 </head>
 <body>
-  <div class="container">
-    <section class="header">
-      <h1>ระบบเช็คประวัติบั้งไฟแต่ละค่าย</h1>
-      <p>ลูกค้าทุกคนเห็นข้อมูลชุดเดียวกันจากฐานข้อมูลกลาง • แอดมินเท่านั้นที่เพิ่ม/แก้ไข/ลบข้อมูลได้</p>
 
-      <div class="search-box">
+  <div id="welcome-screen">
+    <button class="welcome-btn" onclick="startApp()">
+      กดเพื่อเช็คประวัติ<br>แต่ละค่าย
+    </button>
+    <div class="welcome-sub">* กลุ่มเถ้าแก่น้อย *</div>
+  </div>
+
+  <div class="app">
+    <section class="hero">
+      <h1>ระบบเช็คประวัติบั้งไฟแต่ละค่าย</h1>
+      <p>ลูกค้าทุกคนเห็นข้อมูลเดียวกัน • แอดมินเพิ่ม/แก้ไข/ลบได้</p>
+      <div class="search-wrap">
         <span>🔎</span>
-        <input id="searchInput" type="text" placeholder="ค้นหาชื่อค่าย... เช่น แบงค์ทอง" />
+        <input id="searchInput" type="text" placeholder="พิมพ์ชื่อค่าย เช่น แบงค์ทอง..." />
+        <button id="clearSearchBtn" class="clear-btn">ล้าง</button>
       </div>
     </section>
 
-    <div class="layout">
+    <div class="grid">
       <section class="panel">
-        <div class="panel-title">
-          <span>รายชื่อค่าย</span>
-          <span id="campCount" class="muted">กำลังโหลด...</span>
+        <div class="panel-head">
+          <div class="title">รายชื่อค่าย</div>
+          <div id="campCount" class="sub">กำลังโหลด...</div>
         </div>
         <div class="panel-body">
-          <div id="campList" class="camp-grid">
-            <div class="loading">กำลังโหลดข้อมูล...</div>
+          <div id="campList" class="camp-list">
+            <div class="sub" style="font-size:1.2rem;">กำลังโหลดข้อมูล...</div>
           </div>
         </div>
       </section>
 
       <section class="panel">
-        <div class="panel-title">
-          <span>รายละเอียดค่าย</span>
-          <span id="selectedCampTag" class="muted">ยังไม่ได้เลือก</span>
+        <div class="panel-head">
+          <div class="title">รายละเอียดและประวัติ</div>
+          <div id="selectedCampTag" class="sub">ยังไม่ได้เลือก</div>
         </div>
-        <div class="panel-body" id="detailPanel">
+        <div id="detailPanel" class="panel-body">
           <div class="detail-empty">
-            เลือกค่ายจากฝั่งซ้าย แล้วกด <b>“กดเพื่อเช็ค”</b> เพื่อดูประวัติและเปอร์เซ็นต์ผลการยิง
+            เลือกค่ายจากรายการด้านบน<br>แล้วกด <b style="color:var(--primary);">“กดเพื่อเช็ค”</b> เพื่อดูประวัติ
           </div>
         </div>
       </section>
     </div>
-
-    <div class="footer-note">✅ = ชนะ • ❌ = แพ้ • ⛔️ = จาว</div>
   </div>
 
-  <button id="adminFab" class="admin-fab">🔐 โหมดแอดมิน</button>
+  <button id="adminFab" class="fab">🔐 แอดมิน</button>
 
-  <!-- Admin Modal -->
   <div id="adminModal" class="modal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div><b>จัดการข้อมูล (แอดมิน)</b></div>
-        <button id="closeAdminModal" class="icon-btn">ปิด</button>
+    <div class="sheet">
+      <div class="sheet-head">
+        <div class="sheet-title">จัดการข้อมูล (แอดมิน)</div>
+        <button id="closeAdminModal" class="x-btn">ปิดหน้าต่าง</button>
       </div>
-
-      <div class="modal-body">
-        <div class="status-row">
-          <div id="adminStateText" class="muted">สถานะ: ยังไม่ได้เข้าสู่ระบบ</div>
-          <button id="logoutBtn" class="btn btn-secondary" style="display:none;">ออกจากระบบ</button>
+      <div class="sheet-body">
+        <div class="status-box">
+          <div id="adminStateText" class="status-text">สถานะ: ยังไม่ได้เข้าสู่ระบบ</div>
+          <button id="logoutBtn" class="main-btn gray" style="display:none;">ออกจากระบบ</button>
         </div>
 
-        <!-- Login -->
-        <div id="adminLoginCard" class="form-card">
+        <div id="adminLoginCard" class="card">
           <h3>เข้าสู่ระบบแอดมิน</h3>
           <div class="form-grid cols-2">
-            <div class="field" style="grid-column: 1 / -1;">
+            <div class="field" style="grid-column:1/-1">
               <label>อีเมลแอดมิน</label>
-              <input type="email" id="adminEmailInput" placeholder="admin@email.com" />
+              <input type="email" id="adminEmailInput" placeholder="admin@email.com">
             </div>
-            <div class="field" style="grid-column: 1 / -1;">
+            <div class="field" style="grid-column:1/-1">
               <label>รหัสผ่าน</label>
-              <input type="password" id="adminPasswordInput" placeholder="รหัสผ่านแอดมิน" />
+              <input type="password" id="adminPasswordInput" placeholder="รหัสผ่าน">
             </div>
           </div>
-          <div class="actions">
-            <button id="loginBtn" class="btn btn-primary">เข้าสู่ระบบ</button>
+          <div class="action-row">
+            <button id="loginBtn" class="main-btn primary">เข้าสู่ระบบ</button>
           </div>
-          <div class="note">ใช้ Firebase Authentication (Email/Password)</div>
         </div>
 
-        <!-- Add Camp -->
-        <div id="adminAddCampCard" class="form-card" style="display:none;">
+        <div id="adminAddCampCard" class="card" style="display:none;">
           <h3>เพิ่มค่ายใหม่</h3>
           <div class="form-grid cols-2">
-            <div class="field" style="grid-column: 1 / -1;">
+            <div class="field" style="grid-column:1/-1">
               <label>ชื่อค่าย</label>
-              <input type="text" id="newCampName" placeholder="เช่น แบงค์ทอง" />
+              <input type="text" id="newCampName" placeholder="เช่น แบงค์ทอง">
             </div>
           </div>
-          <div class="actions">
-            <button id="addCampBtn" class="btn btn-success">+ เพิ่มค่าย</button>
+          <div class="action-row">
+            <button id="addCampBtn" class="main-btn green">+ เพิ่มค่าย</button>
           </div>
         </div>
 
-        <!-- Add Record -->
-        <div id="adminAddRecordCard" class="form-card" style="display:none;">
+        <div id="adminAddRecordCard" class="card" style="display:none;">
           <h3>เพิ่มประวัติ / สกอร์บั้งไฟ</h3>
-
           <div class="form-grid cols-3">
             <div class="field">
-              <label>เลือกค่าย</label>
+              <label>ค่าย</label>
               <select id="recordCampSelect"></select>
             </div>
             <div class="field">
               <label>วันที่</label>
-              <input type="date" id="recordDate" />
+              <input type="date" id="recordDate">
             </div>
             <div class="field">
               <label>สกอร์</label>
-              <input type="number" id="recordScore" min="0" placeholder="เช่น 355" />
+              <input type="number" id="recordScore" min="0" placeholder="355">
             </div>
-
-            <div class="field">
+            <div class="field" style="grid-column:1/-1">
               <label>ผลลัพธ์</label>
               <select id="recordResult">
                 <option value="win">✅ ชนะ</option>
@@ -512,21 +639,16 @@
               </select>
             </div>
           </div>
-
-          <div class="actions">
-            <button id="addRecordBtn" class="btn btn-primary">บันทึกประวัติ</button>
+          <div class="action-row">
+            <button id="addRecordBtn" class="main-btn primary">บันทึกประวัติ</button>
           </div>
-
-          <div class="note">ตัวอย่างการแสดงผล: 24/02/69 &gt; แบงค์ทอง = 355 ⛔️⛔️</div>
+          <div class="note">ตัวอย่าง: 24/02/69 > แบงค์ทอง = 355 ⛔️⛔️</div>
         </div>
       </div>
     </div>
   </div>
 
   <script type="module">
-    // =========================
-    // Firebase SDK (CDN)
-    // =========================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
       getAuth,
@@ -549,9 +671,7 @@
       writeBatch
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // =========================
-    // Firebase Config
-    // =========================
+    // ✅ ใช้ค่าเดิมของคุณ (ห้ามขาดหาย)
     const firebaseConfig = {
       apiKey: "AIzaSyBo2QyLIW5q6AFAtTYLrqBr5wgssYvwgPI",
       authDomain: "webscorebungfire.firebaseapp.com",
@@ -561,19 +681,12 @@
       appId: "1:1088110071642:web:037a36b00e84aa432ead63"
     };
 
-    // ต้องตรงกับอีเมลใน Firebase Authentication และ Firestore Rules
     const ADMIN_EMAIL = "thebungnot10@gmail.com";
 
-    // =========================
-    // Init Firebase
-    // =========================
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // =========================
-    // State
-    // =========================
     const state = {
       camps: [],
       records: [],
@@ -583,16 +696,14 @@
     };
 
     const RESULT_META = {
-      win:  { label: "ชนะ", icon: "✅", className: "badge-win", weight: 1.0 },
-      lose: { label: "แพ้", icon: "❌", className: "badge-lose", weight: 0.0 },
-      jao:  { label: "จาว", icon: "⛔️", className: "badge-jao", weight: 0.4 }
+      win:  { label: "ชนะ", icon: "✅", className: "win", weight: 1.0 },
+      lose: { label: "แพ้", icon: "❌", className: "lose", weight: 0.0 },
+      jao:  { label: "จาว", icon: "⛔️", className: "jao", weight: 0.4 }
     };
 
-    // =========================
-    // DOM
-    // =========================
     const el = {
       searchInput: document.getElementById("searchInput"),
+      clearSearchBtn: document.getElementById("clearSearchBtn"),
       campList: document.getElementById("campList"),
       campCount: document.getElementById("campCount"),
       detailPanel: document.getElementById("detailPanel"),
@@ -622,9 +733,11 @@
       addRecordBtn: document.getElementById("addRecordBtn")
     };
 
-    // =========================
-    // Helpers
-    // =========================
+    // ฟังก์ชันซ่อนหน้าต่างต้อนรับ
+    window.startApp = function() {
+      document.getElementById('welcome-screen').style.display = 'none';
+    }
+
     function setDefaultDate() {
       const d = new Date();
       const y = d.getFullYear();
@@ -645,16 +758,11 @@
 
     function getMergedCamps() {
       const map = new Map();
-
-      for (const camp of state.camps) {
-        map.set(camp.id, { ...camp, records: [] });
-      }
-
+      for (const camp of state.camps) map.set(camp.id, { ...camp, records: [] });
       for (const rec of state.records) {
         const target = map.get(rec.campId);
         if (target) target.records.push(rec);
       }
-
       return Array.from(map.values());
     }
 
@@ -674,6 +782,7 @@
       const win = camp.records.filter(r => r.result === "win").length;
       const lose = camp.records.filter(r => r.result === "lose").length;
       const jao = camp.records.filter(r => r.result === "jao").length;
+
       const avgScore = total
         ? Math.round(camp.records.reduce((sum, r) => sum + (Number(r.score) || 0), 0) / total)
         : 0;
@@ -699,12 +808,13 @@
         .replaceAll("'", "&#039;");
     }
 
-    // =========================
-    // Render
-    // =========================
+    function updateClearSearchBtn() {
+      const hasText = !!el.searchInput.value.trim();
+      el.clearSearchBtn.style.display = hasText ? "inline-block" : "none";
+    }
+
     function renderCampList() {
       const merged = getMergedCamps();
-
       const sortedByRecords = [...merged].sort((a, b) => {
         const diff = (b.records?.length || 0) - (a.records?.length || 0);
         if (diff !== 0) return diff;
@@ -716,46 +826,58 @@
 
       if (q) {
         visible = sortedByRecords.filter(c => (c.name || "").toLowerCase().includes(q));
-        el.campCount.textContent = `ผลค้นหา ${visible.length} / ทั้งหมด ${merged.length} ค่าย`;
+        el.campCount.textContent = `ผลค้นหา ${visible.length}/${merged.length}`;
       } else {
         visible = sortedByRecords.slice(0, 3);
-        el.campCount.textContent = `แสดง 3 ค่าย (จากทั้งหมด ${merged.length} ค่าย)`;
+        el.campCount.textContent = `แสดง 3 ค่าย (รวม ${merged.length})`;
       }
 
       el.campList.innerHTML = "";
+      updateClearSearchBtn();
 
       if (!visible.length) {
-        const div = document.createElement("div");
-        div.className = "muted";
-        div.textContent = q ? "ไม่พบค่ายที่ค้นหา" : "ยังไม่มีข้อมูลค่าย";
-        el.campList.appendChild(div);
+        const empty = document.createElement("div");
+        empty.className = "detail-empty";
+        empty.textContent = q ? "ไม่พบค่ายที่ค้นหา" : "ยังไม่มีข้อมูลค่าย";
+        el.campList.appendChild(empty);
         return;
       }
 
-      for (const camp of visible) {
+      visible.forEach((camp, idx) => {
         const stats = getStats(camp);
 
         const card = document.createElement("div");
-        card.className = "camp-card";
+        card.className = "camp-item" + (state.selectedCampId === camp.id ? " active" : "");
 
         const left = document.createElement("div");
+        left.className = "camp-left";
         left.innerHTML = `
-          <div class="camp-name">${escapeHtml(camp.name)}</div>
-          <div class="camp-sub">รายการทั้งหมด ${stats.total} ครั้ง • ประเมินรวม ${stats.weighted}%</div>
+          <div class="camp-title">
+            <span class="rank">${idx + 1}</span>
+            <span class="camp-name">${escapeHtml(camp.name)}</span>
+          </div>
+          <div class="camp-meta">
+            <span>ทั้งหมด ${stats.total} ครั้ง</span>
+            <span>ประเมิน ${stats.weighted}%</span>
+            <span>เฉลี่ย ${stats.avgScore}</span>
+          </div>
         `;
 
         const btn = document.createElement("button");
-        btn.className = "btn btn-primary";
+        btn.className = "camp-btn";
         btn.textContent = "กดเพื่อเช็ค";
         btn.onclick = () => {
           state.selectedCampId = camp.id;
+          renderCampList();
           renderDetail();
+          // เลื่อนลงไปดูรายละเอียดทันทีเมื่อผู้สูงอายุกด (สำคัญมากในมือถือ)
+          document.getElementById("detailPanel").scrollIntoView({ behavior: "smooth", block: "start" });
         };
 
         card.appendChild(left);
         card.appendChild(btn);
         el.campList.appendChild(card);
-      }
+      });
     }
 
     function renderDetail() {
@@ -765,7 +887,7 @@
         el.selectedCampTag.textContent = "ยังไม่ได้เลือก";
         el.detailPanel.innerHTML = `
           <div class="detail-empty">
-            เลือกค่ายจากฝั่งซ้าย แล้วกด <b>“กดเพื่อเช็ค”</b> เพื่อดูประวัติและเปอร์เซ็นต์ผลการยิง
+            เลือกค่ายจากรายการ แล้วกด “กดเพื่อเช็ค” เพื่อดูประวัติและเปอร์เซ็นต์
           </div>
         `;
         return;
@@ -782,15 +904,15 @@
         historyHtml = rows.map(r => {
           const meta = RESULT_META[r.result] || RESULT_META.lose;
           return `
-            <div class="history-item">
+            <div class="history">
               <div class="history-line">${formatThaiShort(r.date)} &gt; ${escapeHtml(camp.name)} = ${r.score} ${meta.icon}${meta.icon}</div>
-              <div class="history-meta">
-                <span class="badge ${meta.className}">${meta.icon} ${meta.label}</span>
-                <span>สกอร์: ${r.score}</span>
+              <div class="history-row">
+                <span class="pill ${meta.className}">${meta.icon} ${meta.label}</span>
+                <span>สกอร์ ${r.score}</span>
                 ${state.isAdmin ? `
-                  <span style="margin-left:auto; display:flex; gap:6px;">
-                    <button class="btn-mini" onclick="window.editRecordById('${r.id}')">แก้ไข</button>
-                    <button class="btn-mini btn-mini-danger" onclick="window.deleteRecordById('${r.id}')">ลบ</button>
+                  <span style="margin-left:auto; display:flex; gap:10px;">
+                    <button class="mini-btn" onclick="window.editRecordById('${r.id}')">แก้ไข</button>
+                    <button class="mini-btn danger" onclick="window.deleteRecordById('${r.id}')">ลบ</button>
                   </span>
                 ` : ""}
               </div>
@@ -800,53 +922,48 @@
       }
 
       el.detailPanel.innerHTML = `
-        <div class="detail-header">
-          <h2>${escapeHtml(camp.name)}</h2>
-          <div class="hint">สรุปผลงานย้อนหลังและประเมินเปอร์เซ็นต์</div>
+        <div class="detail-top">
+          <div class="detail-title">${escapeHtml(camp.name)}</div>
+          <div class="detail-hint">สรุปผลงานย้อนหลังและประเมินผลรวม</div>
           ${state.isAdmin ? `
-            <div class="actions" style="margin-top:6px;">
-              <button class="btn-mini" onclick="window.renameSelectedCamp()">แก้ชื่อค่าย</button>
-              <button class="btn-mini btn-mini-danger" onclick="window.deleteSelectedCamp()">ลบค่าย</button>
+            <div class="inline-actions">
+              <button class="mini-btn" onclick="window.renameSelectedCamp()">แก้ชื่อค่าย</button>
+              <button class="mini-btn danger" onclick="window.deleteSelectedCamp()">ลบค่าย</button>
             </div>
           ` : ""}
         </div>
 
         <div class="stats">
-          <div class="stat-card big">
-            <div class="stat-label">ประเมินรวม</div>
-            <div class="stat-value">${stats.weighted}%</div>
+          <div class="stat big">
+            <div class="label">ประเมินรวม (เปอร์เซ็นต์ความน่าจะเป็น)</div>
+            <div class="val">${stats.weighted}%</div>
           </div>
-
-          <div class="stat-card">
-            <div class="stat-label">จำนวนทั้งหมด</div>
-            <div class="stat-value">${stats.total} ครั้ง</div>
+          <div class="stat">
+            <div class="label">แข่งขันทั้งหมด</div>
+            <div class="val">${stats.total} ครั้ง</div>
           </div>
-
-          <div class="stat-card">
-            <div class="stat-label">คะแนนเฉลี่ย</div>
-            <div class="stat-value">${stats.avgScore}</div>
+          <div class="stat">
+            <div class="label">คะแนนเฉลี่ย</div>
+            <div class="val">${stats.avgScore}</div>
           </div>
-
-          <div class="stat-card">
-            <div class="stat-label">ชนะ ✅</div>
-            <div class="stat-value">${stats.win} (${stats.winPct}%)</div>
+          <div class="stat">
+            <div class="label">ชนะ ✅</div>
+            <div class="val">${stats.win} (${stats.winPct}%)</div>
           </div>
-
-          <div class="stat-card">
-            <div class="stat-label">แพ้ ❌</div>
-            <div class="stat-value">${stats.lose} (${stats.losePct}%)</div>
+          <div class="stat">
+            <div class="label">แพ้ ❌</div>
+            <div class="val">${stats.lose} (${stats.losePct}%)</div>
           </div>
-
-          <div class="stat-card">
-            <div class="stat-label">จาว ⛔️</div>
-            <div class="stat-value">${stats.jao} (${stats.jaoPct}%)</div>
+          <div class="stat">
+            <div class="label">จาว ⛔️</div>
+            <div class="val">${stats.jao} (${stats.jaoPct}%)</div>
           </div>
         </div>
 
         <div class="legend">
-          <div class="legend-badge">✅ = ชนะ</div>
-          <div class="legend-badge">❌ = แพ้</div>
-          <div class="legend-badge">⛔️ = จาว</div>
+          <span>✅ = ชนะ</span>
+          <span>❌ = แพ้</span>
+          <span>⛔️ = จาว</span>
         </div>
 
         <div class="history-list">${historyHtml}</div>
@@ -856,13 +973,12 @@
     function renderAdminCampSelect() {
       const camps = getMergedCamps().sort((a, b) => a.name.localeCompare(b.name, "th"));
       el.recordCampSelect.innerHTML = "";
-
-      for (const camp of camps) {
+      camps.forEach(camp => {
         const opt = document.createElement("option");
         opt.value = camp.id;
         opt.textContent = camp.name;
         el.recordCampSelect.appendChild(opt);
-      }
+      });
     }
 
     function refreshAdminUI() {
@@ -886,9 +1002,6 @@
       }
     }
 
-    // =========================
-    // Firebase Realtime Listeners
-    // =========================
     function startRealtimeListeners() {
       onSnapshot(collection(db, "camps"), (snap) => {
         state.camps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -917,9 +1030,6 @@
       });
     }
 
-    // =========================
-    // Auth
-    // =========================
     async function handleLogin() {
       const email = el.adminEmailInput.value.trim();
       const password = el.adminPasswordInput.value;
@@ -934,7 +1044,7 @@
         el.adminPasswordInput.value = "";
       } catch (e) {
         console.error(e);
-        alert("เข้าสู่ระบบไม่สำเร็จ:\n" + (e.code || "") + "\n" + (e.message || ""));
+        alert("เข้าสู่ระบบไม่สำเร็จ\n" + (e.code || "") + "\n" + (e.message || ""));
       }
     }
 
@@ -951,16 +1061,12 @@
       state.currentUserEmail = user?.email || null;
       state.isAdmin = !!(user?.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
       refreshAdminUI();
-      renderDetail();   // ให้ปุ่มแก้/ลบแสดง/ซ่อนทันที
       renderCampList();
+      renderDetail();
     });
 
-    // =========================
-    // Admin actions (Create)
-    // =========================
     async function addCamp() {
       if (!state.isAdmin) return alert("เฉพาะแอดมินเท่านั้น");
-
       const name = el.newCampName.value.trim();
       if (!name) return alert("กรุณากรอกชื่อค่าย");
 
@@ -968,10 +1074,7 @@
       if (exists) return alert("มีชื่อค่ายนี้แล้ว");
 
       try {
-        await addDoc(collection(db, "camps"), {
-          name,
-          createdAt: serverTimestamp()
-        });
+        await addDoc(collection(db, "camps"), { name, createdAt: serverTimestamp() });
         el.newCampName.value = "";
         alert("เพิ่มค่ายเรียบร้อย");
       } catch (e) {
@@ -991,27 +1094,16 @@
       if (!campId) return alert("กรุณาเลือกค่าย");
       if (!date) return alert("กรุณาเลือกวันที่");
       if (Number.isNaN(score) || score < 0) return alert("กรุณากรอกสกอร์ให้ถูกต้อง");
-      if (!["win", "lose", "jao"].includes(result)) return alert("ผลลัพธ์ไม่ถูกต้อง");
-
-      const camp = state.camps.find(c => c.id === campId);
-      if (!camp) return alert("ไม่พบค่าย");
+      if (!["win","lose","jao"].includes(result)) return alert("ผลลัพธ์ไม่ถูกต้อง");
 
       try {
         await addDoc(collection(db, "records"), {
-          campId,
-          date,
-          score,
-          result,
-          createdAt: serverTimestamp()
+          campId, date, score, result, createdAt: serverTimestamp()
         });
-
+        state.selectedCampId = campId;
         el.recordScore.value = "";
         el.recordResult.value = "win";
         setDefaultDate();
-
-        state.selectedCampId = campId;
-        renderDetail();
-
         alert("บันทึกประวัติเรียบร้อย");
       } catch (e) {
         console.error(e);
@@ -1019,46 +1111,28 @@
       }
     }
 
-    // =========================
-    // Admin actions (Edit/Delete)
-    // =========================
     async function editRecordById(recordId) {
       if (!state.isAdmin) return alert("เฉพาะแอดมินเท่านั้น");
-
       const rec = state.records.find(r => r.id === recordId);
       if (!rec) return alert("ไม่พบรายการ");
 
-      const camp = state.camps.find(c => c.id === rec.campId);
-
       const newDate = prompt("แก้ไขวันที่ (YYYY-MM-DD)", rec.date || "");
       if (newDate === null) return;
-
       const newScoreRaw = prompt("แก้ไขสกอร์", String(rec.score ?? ""));
       if (newScoreRaw === null) return;
-
-      const newResultRaw = prompt("แก้ไขผลลัพธ์: win / lose / jao", rec.result || "win");
+      const newResultRaw = prompt("แก้ผลลัพธ์: win / lose / jao", rec.result || "win");
       if (newResultRaw === null) return;
 
       const score = Number(newScoreRaw);
       const result = String(newResultRaw).trim().toLowerCase();
 
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
-        return alert("รูปแบบวันที่ไม่ถูกต้อง ต้องเป็น YYYY-MM-DD");
-      }
-      if (Number.isNaN(score) || score < 0) {
-        return alert("สกอร์ไม่ถูกต้อง");
-      }
-      if (!["win", "lose", "jao"].includes(result)) {
-        return alert("ผลลัพธ์ต้องเป็น win / lose / jao");
-      }
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) return alert("วันที่ต้องเป็น YYYY-MM-DD");
+      if (Number.isNaN(score) || score < 0) return alert("สกอร์ไม่ถูกต้อง");
+      if (!["win","lose","jao"].includes(result)) return alert("ผลลัพธ์ต้องเป็น win / lose / jao");
 
       try {
-        await updateDoc(doc(db, "records", recordId), {
-          date: newDate,
-          score,
-          result
-        });
-        alert(`แก้ไขรายการของ ${camp?.name || "ค่าย"} เรียบร้อย`);
+        await updateDoc(doc(db, "records", recordId), { date: newDate, score, result });
+        alert("แก้ไขรายการเรียบร้อย");
       } catch (e) {
         console.error(e);
         alert("แก้ไขรายการไม่สำเร็จ\n" + (e.code || "") + "\n" + (e.message || ""));
@@ -1067,14 +1141,11 @@
 
     async function deleteRecordById(recordId) {
       if (!state.isAdmin) return alert("เฉพาะแอดมินเท่านั้น");
-
       const rec = state.records.find(r => r.id === recordId);
       if (!rec) return alert("ไม่พบรายการ");
       const camp = state.camps.find(c => c.id === rec.campId);
 
-      const ok = confirm(
-        `ลบรายการนี้ใช่ไหม?\nค่าย: ${camp?.name || "-"}\nวันที่: ${rec.date}\nสกอร์: ${rec.score}`
-      );
+      const ok = confirm(`ลบรายการนี้ใช่ไหม?\nค่าย: ${camp?.name || "-"}\nวันที่: ${rec.date}\nสกอร์: ${rec.score}`);
       if (!ok) return;
 
       try {
@@ -1088,13 +1159,11 @@
 
     async function renameSelectedCamp() {
       if (!state.isAdmin) return alert("เฉพาะแอดมินเท่านั้น");
-
       const camp = state.selectedCampId ? state.camps.find(c => c.id === state.selectedCampId) : null;
       if (!camp) return alert("ยังไม่ได้เลือกค่าย");
 
-      const newName = prompt("แก้ไขชื่อค่าย", camp.name || "");
+      const newName = prompt("แก้ชื่อค่าย", camp.name || "");
       if (newName === null) return;
-
       const name = newName.trim();
       if (!name) return alert("ชื่อค่ายห้ามว่าง");
 
@@ -1112,7 +1181,6 @@
 
     async function deleteSelectedCamp() {
       if (!state.isAdmin) return alert("เฉพาะแอดมินเท่านั้น");
-
       const camp = state.selectedCampId ? state.camps.find(c => c.id === state.selectedCampId) : null;
       if (!camp) return alert("ยังไม่ได้เลือกค่าย");
 
@@ -1121,16 +1189,11 @@
 
       try {
         const batch = writeBatch(db);
-
-        // ลบค่าย
         batch.delete(doc(db, "camps", camp.id));
 
-        // ลบ records ของค่ายนี้ทั้งหมด
         const q = query(collection(db, "records"), where("campId", "==", camp.id));
         const snap = await getDocs(q);
-        snap.forEach(d => {
-          batch.delete(doc(db, "records", d.id));
-        });
+        snap.forEach(d => batch.delete(doc(db, "records", d.id)));
 
         await batch.commit();
         state.selectedCampId = null;
@@ -1141,28 +1204,29 @@
       }
     }
 
-    // ให้ innerHTML onclick เรียกได้ (เพราะ script เป็น module)
+    // expose for inline buttons
     window.editRecordById = editRecordById;
     window.deleteRecordById = deleteRecordById;
     window.renameSelectedCamp = renameSelectedCamp;
     window.deleteSelectedCamp = deleteSelectedCamp;
 
-    // =========================
-    // Modal
-    // =========================
     function openAdminModal() {
       el.adminModal.classList.add("show");
       refreshAdminUI();
     }
-
     function closeAdminModal() {
       el.adminModal.classList.remove("show");
     }
 
-    // =========================
     // Events
-    // =========================
-    el.searchInput.addEventListener("input", renderCampList);
+    el.searchInput.addEventListener("input", () => {
+      renderCampList();
+    });
+
+    el.clearSearchBtn.addEventListener("click", () => {
+      el.searchInput.value = "";
+      renderCampList();
+    });
 
     el.adminFab.addEventListener("click", openAdminModal);
     el.closeAdminModal.addEventListener("click", closeAdminModal);
@@ -1179,9 +1243,7 @@
     el.addCampBtn.addEventListener("click", addCamp);
     el.addRecordBtn.addEventListener("click", addRecord);
 
-    // =========================
     // Start
-    // =========================
     setDefaultDate();
     startRealtimeListeners();
   </script>
