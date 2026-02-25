@@ -159,6 +159,21 @@
     }
     .btn-danger { background: linear-gradient(135deg, #dc2626, #ef4444); }
 
+    .btn-mini {
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: .75rem;
+      cursor: pointer;
+    }
+    .btn-mini:hover { background: rgba(255,255,255,.08); }
+    .btn-mini-danger {
+      border-color: rgba(239,68,68,.25);
+      color: #fca5a5;
+    }
+
     .detail-empty {
       border: 1px dashed rgba(255,255,255,.14);
       border-radius: 12px;
@@ -384,7 +399,7 @@
   <div class="container">
     <section class="header">
       <h1>ระบบเช็คประวัติบั้งไฟแต่ละค่าย</h1>
-      <p>ลูกค้าทุกคนเห็นข้อมูลชุดเดียวกันจากฐานข้อมูลกลาง • แอดมินเท่านั้นที่เพิ่มข้อมูลได้</p>
+      <p>ลูกค้าทุกคนเห็นข้อมูลชุดเดียวกันจากฐานข้อมูลกลาง • แอดมินเท่านั้นที่เพิ่ม/แก้ไข/ลบข้อมูลได้</p>
 
       <div class="search-box">
         <span>🔎</span>
@@ -453,7 +468,7 @@
           <div class="actions">
             <button id="loginBtn" class="btn btn-primary">เข้าสู่ระบบ</button>
           </div>
-          <div class="note">ใช้ Firebase Authentication (ปลอดภัยกว่าใส่รหัสไว้ใน JavaScript)</div>
+          <div class="note">ใช้ Firebase Authentication (Email/Password)</div>
         </div>
 
         <!-- Add Camp -->
@@ -524,11 +539,18 @@
       collection,
       addDoc,
       onSnapshot,
-      serverTimestamp
+      serverTimestamp,
+      doc,
+      updateDoc,
+      deleteDoc,
+      query,
+      where,
+      getDocs,
+      writeBatch
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     // =========================
-    // 1) ใส่ค่า Firebase Config ของคุณตรงนี้
+    // Firebase Config
     // =========================
     const firebaseConfig = {
       apiKey: "AIzaSyBo2QyLIW5q6AFAtTYLrqBr5wgssYvwgPI",
@@ -539,7 +561,7 @@
       appId: "1:1088110071642:web:037a36b00e84aa432ead63"
     };
 
-    // อีเมลแอดมิน (ใช้เช็คสิทธิ์ฝั่งหน้าเว็บ + ต้องตรงกับ Firestore Rules)
+    // ต้องตรงกับอีเมลใน Firebase Authentication และ Firestore Rules
     const ADMIN_EMAIL = "thebungnot10@gmail.com";
 
     // =========================
@@ -553,8 +575,8 @@
     // State
     // =========================
     const state = {
-      camps: [],   // [{id,name,createdAt}]
-      records: [], // [{id,campId,date,score,result}]
+      camps: [],
+      records: [],
       selectedCampId: null,
       isAdmin: false,
       currentUserEmail: null
@@ -622,7 +644,6 @@
     }
 
     function getMergedCamps() {
-      // รวม camps + records เข้าด้วยกันในหน่วยความจำ
       const map = new Map();
 
       for (const camp of state.camps) {
@@ -631,9 +652,7 @@
 
       for (const rec of state.records) {
         const target = map.get(rec.campId);
-        if (target) {
-          target.records.push(rec);
-        }
+        if (target) target.records.push(rec);
       }
 
       return Array.from(map.values());
@@ -686,7 +705,6 @@
     function renderCampList() {
       const merged = getMergedCamps();
 
-      // เรียงจากจำนวนรายการมาก -> น้อย
       const sortedByRecords = [...merged].sort((a, b) => {
         const diff = (b.records?.length || 0) - (a.records?.length || 0);
         if (diff !== 0) return diff;
@@ -769,6 +787,12 @@
               <div class="history-meta">
                 <span class="badge ${meta.className}">${meta.icon} ${meta.label}</span>
                 <span>สกอร์: ${r.score}</span>
+                ${state.isAdmin ? `
+                  <span style="margin-left:auto; display:flex; gap:6px;">
+                    <button class="btn-mini" onclick="window.editRecordById('${r.id}')">แก้ไข</button>
+                    <button class="btn-mini btn-mini-danger" onclick="window.deleteRecordById('${r.id}')">ลบ</button>
+                  </span>
+                ` : ""}
               </div>
             </div>
           `;
@@ -779,6 +803,12 @@
         <div class="detail-header">
           <h2>${escapeHtml(camp.name)}</h2>
           <div class="hint">สรุปผลงานย้อนหลังและประเมินเปอร์เซ็นต์</div>
+          ${state.isAdmin ? `
+            <div class="actions" style="margin-top:6px;">
+              <button class="btn-mini" onclick="window.renameSelectedCamp()">แก้ชื่อค่าย</button>
+              <button class="btn-mini btn-mini-danger" onclick="window.deleteSelectedCamp()">ลบค่าย</button>
+            </div>
+          ` : ""}
         </div>
 
         <div class="stats">
@@ -862,11 +892,10 @@
     function startRealtimeListeners() {
       onSnapshot(collection(db, "camps"), (snap) => {
         state.camps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        // ถ้าเลือกค่ายที่ถูกลบไป ให้รีเซ็ต
+
         if (state.selectedCampId && !state.camps.some(c => c.id === state.selectedCampId)) {
           state.selectedCampId = null;
         } else if (!state.selectedCampId && state.camps.length) {
-          // เลือกค่ายแรกอัตโนมัติ (ตัวที่รายการเยอะสุดจะถูก render ที่ฝั่ง list)
           state.selectedCampId = state.camps[0].id;
         }
 
@@ -875,7 +904,7 @@
         if (state.isAdmin) renderAdminCampSelect();
       }, (err) => {
         console.error("อ่าน camps ไม่สำเร็จ", err);
-        alert("เชื่อมต่อฐานข้อมูลไม่สำเร็จ (camps)");
+        alert("เชื่อมต่อฐานข้อมูลไม่สำเร็จ (camps)\n" + (err.code || "") + "\n" + (err.message || ""));
       });
 
       onSnapshot(collection(db, "records"), (snap) => {
@@ -884,7 +913,7 @@
         renderDetail();
       }, (err) => {
         console.error("อ่าน records ไม่สำเร็จ", err);
-        alert("เชื่อมต่อฐานข้อมูลไม่สำเร็จ (records)");
+        alert("เชื่อมต่อฐานข้อมูลไม่สำเร็จ (records)\n" + (err.code || "") + "\n" + (err.message || ""));
       });
     }
 
@@ -905,7 +934,7 @@
         el.adminPasswordInput.value = "";
       } catch (e) {
         console.error(e);
-        alert("เข้าสู่ระบบไม่สำเร็จ: " + (e.message || "กรุณาตรวจสอบอีเมล/รหัสผ่าน"));
+        alert("เข้าสู่ระบบไม่สำเร็จ:\n" + (e.code || "") + "\n" + (e.message || ""));
       }
     }
 
@@ -922,28 +951,21 @@
       state.currentUserEmail = user?.email || null;
       state.isAdmin = !!(user?.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
       refreshAdminUI();
+      renderDetail();   // ให้ปุ่มแก้/ลบแสดง/ซ่อนทันที
+      renderCampList();
     });
 
     // =========================
-    // Admin actions (write to Firestore)
+    // Admin actions (Create)
     // =========================
     async function addCamp() {
-      if (!state.isAdmin) {
-        alert("เฉพาะแอดมินเท่านั้น");
-        return;
-      }
+      if (!state.isAdmin) return alert("เฉพาะแอดมินเท่านั้น");
 
       const name = el.newCampName.value.trim();
-      if (!name) {
-        alert("กรุณากรอกชื่อค่าย");
-        return;
-      }
+      if (!name) return alert("กรุณากรอกชื่อค่าย");
 
       const exists = state.camps.some(c => (c.name || "").toLowerCase() === name.toLowerCase());
-      if (exists) {
-        alert("มีชื่อค่ายนี้แล้ว");
-        return;
-      }
+      if (exists) return alert("มีชื่อค่ายนี้แล้ว");
 
       try {
         await addDoc(collection(db, "camps"), {
@@ -954,15 +976,12 @@
         alert("เพิ่มค่ายเรียบร้อย");
       } catch (e) {
         console.error(e);
-        alert("เพิ่มค่ายไม่สำเร็จ");
+        alert("เพิ่มค่ายไม่สำเร็จ\n" + (e.code || "") + "\n" + (e.message || ""));
       }
     }
 
     async function addRecord() {
-      if (!state.isAdmin) {
-        alert("เฉพาะแอดมินเท่านั้น");
-        return;
-      }
+      if (!state.isAdmin) return alert("เฉพาะแอดมินเท่านั้น");
 
       const campId = el.recordCampSelect.value;
       const date = el.recordDate.value;
@@ -980,9 +999,9 @@
       try {
         await addDoc(collection(db, "records"), {
           campId,
-          date,                  // "YYYY-MM-DD"
+          date,
           score,
-          result,                // win / lose / jao
+          result,
           createdAt: serverTimestamp()
         });
 
@@ -990,16 +1009,143 @@
         el.recordResult.value = "win";
         setDefaultDate();
 
-        // ถ้าอยากเด้งไปดูค่ายที่เพิ่งเพิ่มรายการ
         state.selectedCampId = campId;
         renderDetail();
 
         alert("บันทึกประวัติเรียบร้อย");
       } catch (e) {
         console.error(e);
-        alert("บันทึกประวัติไม่สำเร็จ");
+        alert("บันทึกประวัติไม่สำเร็จ\n" + (e.code || "") + "\n" + (e.message || ""));
       }
     }
+
+    // =========================
+    // Admin actions (Edit/Delete)
+    // =========================
+    async function editRecordById(recordId) {
+      if (!state.isAdmin) return alert("เฉพาะแอดมินเท่านั้น");
+
+      const rec = state.records.find(r => r.id === recordId);
+      if (!rec) return alert("ไม่พบรายการ");
+
+      const camp = state.camps.find(c => c.id === rec.campId);
+
+      const newDate = prompt("แก้ไขวันที่ (YYYY-MM-DD)", rec.date || "");
+      if (newDate === null) return;
+
+      const newScoreRaw = prompt("แก้ไขสกอร์", String(rec.score ?? ""));
+      if (newScoreRaw === null) return;
+
+      const newResultRaw = prompt("แก้ไขผลลัพธ์: win / lose / jao", rec.result || "win");
+      if (newResultRaw === null) return;
+
+      const score = Number(newScoreRaw);
+      const result = String(newResultRaw).trim().toLowerCase();
+
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
+        return alert("รูปแบบวันที่ไม่ถูกต้อง ต้องเป็น YYYY-MM-DD");
+      }
+      if (Number.isNaN(score) || score < 0) {
+        return alert("สกอร์ไม่ถูกต้อง");
+      }
+      if (!["win", "lose", "jao"].includes(result)) {
+        return alert("ผลลัพธ์ต้องเป็น win / lose / jao");
+      }
+
+      try {
+        await updateDoc(doc(db, "records", recordId), {
+          date: newDate,
+          score,
+          result
+        });
+        alert(`แก้ไขรายการของ ${camp?.name || "ค่าย"} เรียบร้อย`);
+      } catch (e) {
+        console.error(e);
+        alert("แก้ไขรายการไม่สำเร็จ\n" + (e.code || "") + "\n" + (e.message || ""));
+      }
+    }
+
+    async function deleteRecordById(recordId) {
+      if (!state.isAdmin) return alert("เฉพาะแอดมินเท่านั้น");
+
+      const rec = state.records.find(r => r.id === recordId);
+      if (!rec) return alert("ไม่พบรายการ");
+      const camp = state.camps.find(c => c.id === rec.campId);
+
+      const ok = confirm(
+        `ลบรายการนี้ใช่ไหม?\nค่าย: ${camp?.name || "-"}\nวันที่: ${rec.date}\nสกอร์: ${rec.score}`
+      );
+      if (!ok) return;
+
+      try {
+        await deleteDoc(doc(db, "records", recordId));
+        alert("ลบรายการเรียบร้อย");
+      } catch (e) {
+        console.error(e);
+        alert("ลบรายการไม่สำเร็จ\n" + (e.code || "") + "\n" + (e.message || ""));
+      }
+    }
+
+    async function renameSelectedCamp() {
+      if (!state.isAdmin) return alert("เฉพาะแอดมินเท่านั้น");
+
+      const camp = state.selectedCampId ? state.camps.find(c => c.id === state.selectedCampId) : null;
+      if (!camp) return alert("ยังไม่ได้เลือกค่าย");
+
+      const newName = prompt("แก้ไขชื่อค่าย", camp.name || "");
+      if (newName === null) return;
+
+      const name = newName.trim();
+      if (!name) return alert("ชื่อค่ายห้ามว่าง");
+
+      const duplicate = state.camps.some(c => c.id !== camp.id && (c.name || "").toLowerCase() === name.toLowerCase());
+      if (duplicate) return alert("มีชื่อค่ายนี้แล้ว");
+
+      try {
+        await updateDoc(doc(db, "camps", camp.id), { name });
+        alert("แก้ชื่อค่ายเรียบร้อย");
+      } catch (e) {
+        console.error(e);
+        alert("แก้ชื่อค่ายไม่สำเร็จ\n" + (e.code || "") + "\n" + (e.message || ""));
+      }
+    }
+
+    async function deleteSelectedCamp() {
+      if (!state.isAdmin) return alert("เฉพาะแอดมินเท่านั้น");
+
+      const camp = state.selectedCampId ? state.camps.find(c => c.id === state.selectedCampId) : null;
+      if (!camp) return alert("ยังไม่ได้เลือกค่าย");
+
+      const ok = confirm(`ลบค่าย "${camp.name}" ใช่ไหม?\nระบบจะลบประวัติทั้งหมดของค่ายนี้ด้วย`);
+      if (!ok) return;
+
+      try {
+        const batch = writeBatch(db);
+
+        // ลบค่าย
+        batch.delete(doc(db, "camps", camp.id));
+
+        // ลบ records ของค่ายนี้ทั้งหมด
+        const q = query(collection(db, "records"), where("campId", "==", camp.id));
+        const snap = await getDocs(q);
+        snap.forEach(d => {
+          batch.delete(doc(db, "records", d.id));
+        });
+
+        await batch.commit();
+        state.selectedCampId = null;
+        alert("ลบค่ายและประวัติทั้งหมดเรียบร้อย");
+      } catch (e) {
+        console.error(e);
+        alert("ลบค่ายไม่สำเร็จ\n" + (e.code || "") + "\n" + (e.message || ""));
+      }
+    }
+
+    // ให้ innerHTML onclick เรียกได้ (เพราะ script เป็น module)
+    window.editRecordById = editRecordById;
+    window.deleteRecordById = deleteRecordById;
+    window.renameSelectedCamp = renameSelectedCamp;
+    window.deleteSelectedCamp = deleteSelectedCamp;
 
     // =========================
     // Modal
@@ -1041,4 +1187,3 @@
   </script>
 </body>
 </html>
-
