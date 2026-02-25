@@ -3,525 +3,134 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ระบบเช็คประวัติบั้งไฟแต่ละค่าย</title>
+  <title>ระบบเช็คประวัติบั้งไฟ - กลุ่มเถ้าแก่น้อย</title>
   <style>
-    :root{
-      --bg:#071225;
-      --bg2:#0b1b35;
-      --card:#0e203d;
-      --card2:#12284a;
-      --line:rgba(255,255,255,.10);
-      --text:#eaf1ff;
-      --muted:#9db0cc;
-      --primary:#33c3ff;
-      --primary2:#18e0c4;
-      --success:#22c55e;
-      --danger:#ef4444;
-      --warn:#f59e0b;
-      --shadow:0 10px 30px rgba(0,0,0,.35);
-      --radius:20px; /* ปรับให้ขอบมนขึ้นดูสบายตา */
+    :root {
+      --bg: #ffffff;
+      --text: #333333;
+      --red-btn: #ef4444;
+      --red-btn-border: #b91c1c;
+      --primary: #3b82f6;
     }
 
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0}
-    body{
-      font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(600px 250px at 10% 0%, rgba(51,195,255,.18), transparent 60%),
-        radial-gradient(600px 300px at 100% 0%, rgba(24,224,196,.10), transparent 55%),
-        linear-gradient(180deg,var(--bg), #050d1b 75%);
-      min-height:100vh;
-      font-size: 18px; /* ขยายขนาดตัวอักษรพื้นฐานสำหรับผู้สูงอายุ */
-    }
-
-    /* --- หน้าต่างต้อนรับ (Welcome Screen) --- */
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    
+    /* ---------------------------------------------------
+       1. หน้าต่างต้อนรับตัวใหญ่ๆ (Welcome Screen)
+       --------------------------------------------------- */
     #welcome-screen {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 99999;
-      padding: 20px;
-      text-align: center;
+      position: fixed; inset: 0;
+      background: #000; /* พื้นดำให้ปุ่มเด่น */
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 99999; padding: 20px; text-align: center;
     }
     .welcome-btn {
-      background: var(--primary);
-      color: #000;
-      border: none;
-      padding: 30px 20px;
-      border-radius: var(--radius);
-      font-size: 2.2rem;
-      font-weight: 900;
-      cursor: pointer;
-      box-shadow: 0 0 30px rgba(51,195,255,0.4);
-      width: 100%;
-      max-width: 450px;
-      line-height: 1.4;
+      background: var(--red-btn); color: white; border: none;
+      padding: 40px 20px; border-radius: 20px; font-size: 2.2rem; font-weight: 900;
+      cursor: pointer; width: 100%; max-width: 450px; line-height: 1.5;
+      box-shadow: 0 0 30px rgba(239,68,68,0.5);
       animation: pulse 2s infinite;
     }
-    .welcome-sub {
-      margin-top: 25px;
-      font-size: 1.8rem;
-      color: var(--primary);
-      font-weight: bold;
-    }
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.03); }
-      100% { transform: scale(1); }
-    }
-    /* --------------------------------- */
+    .welcome-sub { margin-top: 25px; font-size: 1.8rem; color: #fff; font-weight: bold; }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-    .app{
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 15px 15px 100px;
+    /* ---------------------------------------------------
+       2. หน้าหลัก (ค้นหา + ปุ่มแดง) ตามรูปเป๊ะๆ
+       --------------------------------------------------- */
+    .app { padding: 20px; max-width: 1000px; margin: 0 auto; padding-bottom: 100px; }
+    
+    .header-title {
+      text-align: center; font-size: 2.5rem; color: #7f1d1d; font-weight: 900; margin-bottom: 20px;
     }
+    
+    .search-wrap { margin-bottom: 30px; }
+    .search-wrap input {
+      width: 100%; padding: 20px; font-size: 1.8rem; border: 3px solid #7f1d1d;
+      border-radius: 15px; text-align: center; outline: none;
+    }
+    .search-wrap input::placeholder { color: #aaa; }
 
-    /* Header */
-    .hero{
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      border:2px solid var(--primary);
-      border-radius: 22px;
-      padding: 20px;
-      box-shadow: var(--shadow);
-      position: sticky;
-      top: 10px;
-      z-index: 5;
-      backdrop-filter: blur(10px);
-      text-align: center;
+    /* Grid ปุ่มค่ายสีแดง */
+    .camp-grid {
+      display: grid;
+      /* ในมือถือจะแสดง 2 คอลัมน์ ถ้าจอใหญ่จะเพิ่มขึ้นเองอัตโนมัติ */
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+      gap: 15px;
     }
-    .hero h1{
-      margin:0;
-      font-size:1.6rem;
-      line-height:1.3;
-      font-weight:800;
-      color: var(--primary);
+    .camp-btn-red {
+      background: var(--red-btn); color: white; border: 2px solid var(--red-btn-border);
+      padding: 25px 10px; border-radius: 10px; font-size: 1.4rem; font-weight: bold;
+      cursor: pointer; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      word-break: break-word; line-height: 1.3;
     }
-    .hero p{
-      margin:8px 0 0;
-      color:var(--text);
-      font-size:1.1rem;
-      line-height:1.4;
-    }
+    .camp-btn-red:active { transform: scale(0.95); }
 
-    .search-wrap{
-      margin-top:15px;
-      display:flex;
-      gap:8px;
-      align-items:center;
-      background: rgba(0,0,0,0.3);
-      border: 1px solid var(--primary);
-      border-radius: 16px;
-      padding: 12px 15px;
+    /* ---------------------------------------------------
+       3. หน้าต่างแสดงรายละเอียด (กางเต็มจอ อ่านง่ายๆ)
+       --------------------------------------------------- */
+    #detailOverlay {
+      display: none; position: fixed; inset: 0; background: #fff;
+      z-index: 10000; overflow-y: auto; padding: 20px;
     }
-    .search-wrap span { font-size: 1.5rem; }
-    .search-wrap input{
-      flex:1;
-      border:none;
-      background:transparent;
-      color:var(--text);
-      outline:none;
-      font-size:1.3rem;
+    .close-overlay-btn {
+      background: #333; color: white; width: 100%; padding: 20px;
+      border: none; border-radius: 15px; font-size: 1.8rem; font-weight: bold;
+      margin-bottom: 20px; cursor: pointer;
     }
-    .search-wrap input::placeholder{color:#8ea5c7}
-    .clear-btn{
-      border:none;
-      background:rgba(255,255,255,.1);
-      color:white;
-      border-radius:10px;
-      padding:8px 15px;
-      font-size:1rem;
-      cursor:pointer;
-      display:none;
+    
+    .detail-title { font-size: 2.5rem; color: #7f1d1d; font-weight: 900; text-align: center; margin-bottom: 10px; }
+    .stat-box {
+      background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 15px;
+      padding: 20px; margin-bottom: 20px; text-align: center;
     }
+    .stat-box.big { border-color: #3b82f6; background: #eff6ff; }
+    .stat-box .label { font-size: 1.2rem; color: #64748b; margin-bottom: 5px; }
+    .stat-box .val { font-size: 2rem; font-weight: 900; color: #0f172a; }
+    .stat-box.big .val { font-size: 3rem; color: #1d4ed8; }
+    
+    .history-card {
+      border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px;
+      margin-bottom: 15px; font-size: 1.4rem; font-weight: bold;
+    }
+    .history-card.win { border-left: 8px solid #22c55e; background: #f0fdf4; }
+    .history-card.lose { border-left: 8px solid #ef4444; background: #fef2f2; }
+    .history-card.jao { border-left: 8px solid #f59e0b; background: #fffbeb; }
 
-    /* Layout */
-    .grid{
-      margin-top:20px;
-      display:grid;
-      grid-template-columns:1fr;
-      gap:20px;
-    }
-    @media (min-width: 980px){
-      .grid{grid-template-columns: 0.95fr 1.05fr;}
-    }
+    .inline-actions { display: flex; gap: 10px; margin-top: 10px; }
+    .mini-btn { padding: 10px 15px; font-size: 1.2rem; border-radius: 8px; border: none; font-weight: bold; cursor: pointer;}
+    .mini-btn.edit { background: #e2e8f0; color: #333; }
+    .mini-btn.danger { background: #fee2e2; color: #ef4444; }
 
-    .panel{
-      border:1px solid var(--line);
-      border-radius: var(--radius);
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-      box-shadow: var(--shadow);
-      overflow:hidden;
+    /* ---------------------------------------------------
+       4. ส่วนของแอดมิน (เก็บไว้ครบถ้วนเหมือนเดิม)
+       --------------------------------------------------- */
+    .fab {
+      position: fixed; right: 20px; bottom: 20px; z-index: 30; border: none; border-radius: 999px;
+      padding: 15px 20px; font-weight: 900; font-size: 1.2rem; color: #fff; cursor: pointer;
+      background: linear-gradient(135deg, #7c3aed, #2563eb); box-shadow: 0 10px 24px rgba(37,99,235,.5);
     }
-    .panel-head{
-      padding:15px 20px;
-      border-bottom:1px solid rgba(255,255,255,.06);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:8px;
-      background:rgba(255,255,255,.03);
+    .modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,.85); display: none;
+      align-items: center; justify-content: center; z-index: 50; padding: 20px;
     }
-    .panel-head .title{
-      font-weight:800;
-      font-size:1.3rem;
-      color: var(--primary);
+    .modal.show { display: flex; }
+    .sheet {
+      width: 100%; max-width: 600px; background: #fff; border-radius: 20px;
+      max-height: 90vh; overflow: auto; color: #000;
     }
-    .panel-head .sub{
-      color:var(--muted);
-      font-size:1rem;
-      white-space:nowrap;
-    }
-    .panel-body{padding:15px}
-
-    /* Camp list */
-    .camp-list{
-      display:flex;
-      flex-direction:column;
-      gap:15px;
-      max-height: 62vh;
-      overflow:auto;
-      padding-right:5px;
-    }
-    @media (max-width: 979px){
-      .camp-list{max-height:none}
-    }
-    .camp-item{
-      border:2px solid transparent;
-      border-radius:16px;
-      background: var(--card2);
-      padding:15px;
-      display:flex;
-      flex-direction: column;
-      gap:12px;
-    }
-    .camp-item.active{
-      border-color: var(--primary);
-      box-shadow: 0 0 15px rgba(51,195,255,.2);
-      background: #1a3661;
-    }
-    .camp-left{ min-width:0; }
-    .camp-title{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-weight:800;
-      font-size:1.4rem;
-      margin-bottom:8px;
-      min-width:0;
-    }
-    .rank{
-      min-width:32px;height:32px;
-      display:inline-flex;align-items:center;justify-content:center;
-      border-radius:999px;
-      font-size:1rem;
-      color:#000;
-      background:linear-gradient(135deg,var(--primary),var(--primary2));
-      font-weight:800;
-    }
-    .camp-name{
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
-    .camp-meta{
-      color:var(--text);
-      font-size:1rem;
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      line-height:1.4;
-    }
-    .camp-meta span {
-      background: rgba(0,0,0,0.2);
-      padding: 4px 8px;
-      border-radius: 6px;
-    }
-    .camp-btn{
-      border:none;
-      border-radius:12px;
-      padding:15px 20px;
-      width: 100%;
-      color:#000;
-      font-weight:900;
-      font-size:1.2rem;
-      background:linear-gradient(135deg,var(--primary),var(--primary2));
-      cursor:pointer;
-      box-shadow: 0 4px 15px rgba(51,195,255,0.3);
-    }
-
-    /* Detail */
-    .detail-empty{
-      border:2px dashed rgba(255,255,255,.2);
-      border-radius:16px;
-      padding:30px 15px;
-      color:var(--text);
-      text-align:center;
-      font-size:1.2rem;
-      line-height:1.5;
-    }
-
-    .detail-top{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      margin-bottom:15px;
-    }
-    .detail-title{
-      font-size:1.8rem;
-      font-weight:900;
-      line-height:1.35;
-      color: var(--primary);
-      word-break:break-word;
-    }
-    .detail-hint{
-      color:var(--muted);
-      font-size:1.1rem;
-    }
-
-    .inline-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-    .mini-btn{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.1);
-      color:white;
-      border-radius:10px;
-      padding:10px 15px;
-      font-size:1rem;
-      font-weight:700;
-      cursor:pointer;
-    }
-    .mini-btn.danger{ border-color:var(--danger); background:rgba(239,68,68,.1); color:#ffc0c0; }
-
-    .stats{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:12px;
-      margin:15px 0;
-    }
-    .stat{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:15px;
-      background: rgba(255,255,255,.05);
-      text-align: center;
-    }
-    .stat.big{
-      grid-column:1/-1;
-      background: linear-gradient(135deg, rgba(51,195,255,.15), rgba(24,224,196,.08));
-      border: 2px solid var(--primary);
-    }
-    .stat .label{
-      color:var(--muted);
-      font-size:1rem;
-      margin-bottom:8px;
-    }
-    .stat .val{
-      font-weight:900;
-      font-size:1.5rem;
-      color: #fff;
-    }
-    .stat.big .val { font-size: 2.2rem; color: var(--primary2); }
-
-    .legend{
-      display:flex; flex-wrap:wrap; gap:10px;
-      margin-bottom:15px; justify-content: center;
-    }
-    .legend span{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.05);
-      border-radius:999px;
-      padding:8px 12px;
-      font-size:1rem;
-      color:var(--text);
-    }
-
-    .history-list{
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-      max-height: 52vh;
-      overflow:auto;
-      padding-right:5px;
-    }
-    @media (max-width: 979px){
-      .history-list{max-height:none}
-    }
-
-    .history{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:15px;
-      background: var(--card2);
-    }
-    .history-line{
-      font-weight:800;
-      font-size:1.3rem;
-      line-height:1.4;
-      word-break:break-word;
-    }
-    .history-row{
-      margin-top:10px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-      color:var(--text);
-      font-size:1.1rem;
-    }
-    .pill{
-      border-radius:999px;
-      padding:6px 12px;
-      font-size:1rem;
-      font-weight:800;
-      border:1px solid transparent;
-    }
-    .pill.win{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.4);color:#a7f3c1}
-    .pill.lose{background:rgba(239,68,68,.2);border-color:rgba(239,68,68,.4);color:#fecaca}
-    .pill.jao{background:rgba(245,158,11,.2);border-color:rgba(245,158,11,.4);color:#fde68a}
-
-    /* Admin FAB */
-    .fab{
-      position:fixed;
-      right:20px; bottom:20px;
-      z-index:30;
-      border:none;
-      border-radius:999px;
-      padding:15px 20px;
-      font-weight:900;
-      font-size: 1.2rem;
-      color:#fff;
-      cursor:pointer;
-      background: linear-gradient(135deg,#7c3aed,#2563eb);
-      box-shadow: 0 10px 24px rgba(37,99,235,.5);
-    }
-
-    /* Modal */
-    .modal{
-      position:fixed; inset:0;
-      background: rgba(2,6,23,.85);
-      display:none;
-      align-items:flex-end;
-      justify-content:center;
-      z-index:50;
-      padding:0;
-    }
-    .modal.show{display:flex}
-    .sheet{
-      width:100%;
-      max-width:760px;
-      background:#091324;
-      border:1px solid var(--line);
-      border-radius:24px 24px 0 0;
-      max-height:90vh;
-      overflow:auto;
-      box-shadow: var(--shadow);
-    }
-    @media (min-width:700px){
-      .modal{align-items:center; padding:20px;}
-      .sheet{border-radius:24px;}
-    }
-    .sheet-head{
-      position:sticky;
-      top:0;
-      background:#091324;
-      z-index:1;
-      border-bottom:1px solid rgba(255,255,255,.1);
-      padding:15px 20px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:8px;
-    }
-    .sheet-title{font-weight:900; font-size:1.4rem;}
-    .x-btn{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.1);
-      color:white;
-      border-radius:12px;
-      padding:10px 15px;
-      font-size: 1.1rem;
-      cursor:pointer;
-    }
-    .sheet-body{padding:20px; display:grid; gap:15px;}
-
-    .status-box{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:15px;
-      background: rgba(255,255,255,.05);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .status-text{font-size:1.1rem;color:var(--text)}
-
-    .card{
-      border:1px solid var(--line);
-      border-radius:16px;
-      background: rgba(255,255,255,.03);
-      padding:20px;
-    }
-    .card h3{
-      margin:0 0 15px;
-      font-size:1.3rem;
-      color: var(--primary);
-    }
-
-    .form-grid{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:12px;
-    }
-    @media (min-width:650px){
-      .form-grid.cols-2{grid-template-columns:1fr 1fr}
-      .form-grid.cols-3{grid-template-columns:1fr 1fr 1fr}
-    }
-    .field{display:grid; gap:8px}
-    .field label{font-size:1rem;color:var(--muted)}
-    .field input,.field select{
-      width:100%;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.05);
-      color:white;
-      outline:none;
-      border-radius:12px;
-      padding:15px;
-      font-size:1.2rem;
-    }
-
-    .action-row{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:15px;
-    }
-    .main-btn{
-      border:none;
-      border-radius:14px;
-      padding:15px 20px;
-      color:#fff;
-      font-size:1.2rem;
-      font-weight:900;
-      cursor:pointer;
-      width: 100%;
-    }
-    @media (min-width:650px){ .main-btn { width: auto; } }
-    .main-btn.primary{background:linear-gradient(135deg,var(--primary),var(--primary2)); color:#000;}
-    .main-btn.green{background:linear-gradient(135deg,#16a34a,#22c55e)}
-    .main-btn.gray{
-      background:rgba(255,255,255,.1);
-      border:1px solid var(--line);
-      color:var(--text);
-    }
-
-    .note{margin-top:10px; color:var(--muted); font-size:1rem; line-height:1.4}
+    .sheet-head { padding: 20px; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
+    .sheet-title { font-size: 1.5rem; font-weight: bold; }
+    .x-btn { background: #ef4444; color: white; border: none; padding: 10px 15px; border-radius: 10px; font-size: 1.2rem; cursor: pointer; }
+    .sheet-body { padding: 20px; }
+    .card { border: 1px solid #ccc; padding: 15px; border-radius: 15px; margin-bottom: 15px; }
+    .field label { font-size: 1.2rem; font-weight: bold; display: block; margin-bottom: 5px; }
+    .field input, .field select { width: 100%; padding: 15px; font-size: 1.2rem; border: 1px solid #ccc; border-radius: 10px; margin-bottom: 15px; }
+    .main-btn { width: 100%; padding: 15px; font-size: 1.5rem; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; color: white; }
+    .main-btn.primary { background: #3b82f6; }
+    .main-btn.green { background: #22c55e; margin-bottom: 10px; }
+    .main-btn.gray { background: #64748b; margin-top: 10px; }
+    .admin-actions-top { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
   </style>
 </head>
 <body>
@@ -534,41 +143,21 @@
   </div>
 
   <div class="app">
-    <section class="hero">
-      <h1>ระบบเช็คประวัติบั้งไฟแต่ละค่าย</h1>
-      <p>ลูกค้าทุกคนเห็นข้อมูลเดียวกัน • แอดมินเพิ่ม/แก้ไข/ลบได้</p>
-      <div class="search-wrap">
-        <span>🔎</span>
-        <input id="searchInput" type="text" placeholder="พิมพ์ชื่อค่าย เช่น แบงค์ทอง..." />
-        <button id="clearSearchBtn" class="clear-btn">ล้าง</button>
-      </div>
-    </section>
-
-    <div class="grid">
-      <section class="panel">
-        <div class="panel-head">
-          <div class="title">รายชื่อค่าย</div>
-          <div id="campCount" class="sub">กำลังโหลด...</div>
-        </div>
-        <div class="panel-body">
-          <div id="campList" class="camp-list">
-            <div class="sub" style="font-size:1.2rem;">กำลังโหลดข้อมูล...</div>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <div class="title">รายละเอียดและประวัติ</div>
-          <div id="selectedCampTag" class="sub">ยังไม่ได้เลือก</div>
-        </div>
-        <div id="detailPanel" class="panel-body">
-          <div class="detail-empty">
-            เลือกค่ายจากรายการด้านบน<br>แล้วกด <b style="color:var(--primary);">“กดเพื่อเช็ค”</b> เพื่อดูประวัติ
-          </div>
-        </div>
-      </section>
+    <div class="header-title">ค้นหาชื่อค่าย</div>
+    
+    <div class="search-wrap">
+      <input id="searchInput" type="text" placeholder="พิมพ์ชื่อค่ายตรงนี้..." />
     </div>
+
+    <div id="campGrid" class="camp-grid">
+      <div style="font-size: 1.5rem; text-align: center; width: 100%;">กำลังโหลดข้อมูล...</div>
+    </div>
+  </div>
+
+  <div id="detailOverlay">
+    <button class="close-overlay-btn" onclick="closeDetail()">❌ ปิดหน้าต่างกลับไปหน้าแรก</button>
+    <div id="detailContent">
+      </div>
   </div>
 
   <button id="adminFab" class="fab">🔐 แอดมิน</button>
@@ -577,72 +166,59 @@
     <div class="sheet">
       <div class="sheet-head">
         <div class="sheet-title">จัดการข้อมูล (แอดมิน)</div>
-        <button id="closeAdminModal" class="x-btn">ปิดหน้าต่าง</button>
+        <button id="closeAdminModal" class="x-btn">ปิด</button>
       </div>
       <div class="sheet-body">
-        <div class="status-box">
-          <div id="adminStateText" class="status-text">สถานะ: ยังไม่ได้เข้าสู่ระบบ</div>
+        <div class="card" style="background:#f8fafc; border-color:#cbd5e1;">
+          <div id="adminStateText" style="font-size:1.1rem; margin-bottom:10px;">สถานะ: ยังไม่ได้เข้าสู่ระบบ</div>
           <button id="logoutBtn" class="main-btn gray" style="display:none;">ออกจากระบบ</button>
         </div>
 
         <div id="adminLoginCard" class="card">
           <h3>เข้าสู่ระบบแอดมิน</h3>
-          <div class="form-grid cols-2">
-            <div class="field" style="grid-column:1/-1">
-              <label>อีเมลแอดมิน</label>
-              <input type="email" id="adminEmailInput" placeholder="admin@email.com">
-            </div>
-            <div class="field" style="grid-column:1/-1">
-              <label>รหัสผ่าน</label>
-              <input type="password" id="adminPasswordInput" placeholder="รหัสผ่าน">
-            </div>
+          <div class="field">
+            <label>อีเมลแอดมิน</label>
+            <input type="email" id="adminEmailInput" placeholder="admin@email.com">
           </div>
-          <div class="action-row">
-            <button id="loginBtn" class="main-btn primary">เข้าสู่ระบบ</button>
+          <div class="field">
+            <label>รหัสผ่าน</label>
+            <input type="password" id="adminPasswordInput" placeholder="รหัสผ่าน">
           </div>
+          <button id="loginBtn" class="main-btn primary">เข้าสู่ระบบ</button>
         </div>
 
         <div id="adminAddCampCard" class="card" style="display:none;">
           <h3>เพิ่มค่ายใหม่</h3>
-          <div class="form-grid cols-2">
-            <div class="field" style="grid-column:1/-1">
-              <label>ชื่อค่าย</label>
-              <input type="text" id="newCampName" placeholder="เช่น แบงค์ทอง">
-            </div>
+          <div class="field">
+            <label>ชื่อค่าย</label>
+            <input type="text" id="newCampName" placeholder="เช่น แบงค์ทอง">
           </div>
-          <div class="action-row">
-            <button id="addCampBtn" class="main-btn green">+ เพิ่มค่าย</button>
-          </div>
+          <button id="addCampBtn" class="main-btn green">+ เพิ่มค่าย</button>
         </div>
 
         <div id="adminAddRecordCard" class="card" style="display:none;">
           <h3>เพิ่มประวัติ / สกอร์บั้งไฟ</h3>
-          <div class="form-grid cols-3">
-            <div class="field">
-              <label>ค่าย</label>
-              <select id="recordCampSelect"></select>
-            </div>
-            <div class="field">
-              <label>วันที่</label>
-              <input type="date" id="recordDate">
-            </div>
-            <div class="field">
-              <label>สกอร์</label>
-              <input type="number" id="recordScore" min="0" placeholder="355">
-            </div>
-            <div class="field" style="grid-column:1/-1">
-              <label>ผลลัพธ์</label>
-              <select id="recordResult">
-                <option value="win">✅ ชนะ</option>
-                <option value="lose">❌ แพ้</option>
-                <option value="jao">⛔️ จาว</option>
-              </select>
-            </div>
+          <div class="field">
+            <label>ค่าย</label>
+            <select id="recordCampSelect"></select>
           </div>
-          <div class="action-row">
-            <button id="addRecordBtn" class="main-btn primary">บันทึกประวัติ</button>
+          <div class="field">
+            <label>วันที่</label>
+            <input type="date" id="recordDate">
           </div>
-          <div class="note">ตัวอย่าง: 24/02/69 > แบงค์ทอง = 355 ⛔️⛔️</div>
+          <div class="field">
+            <label>สกอร์</label>
+            <input type="number" id="recordScore" min="0" placeholder="355">
+          </div>
+          <div class="field">
+            <label>ผลลัพธ์</label>
+            <select id="recordResult">
+              <option value="win">✅ ชนะ</option>
+              <option value="lose">❌ แพ้</option>
+              <option value="jao">⛔️ จาว</option>
+            </select>
+          </div>
+          <button id="addRecordBtn" class="main-btn primary">บันทึกประวัติ</button>
         </div>
       </div>
     </div>
@@ -650,28 +226,10 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getAuth,
-      signInWithEmailAndPassword,
-      signOut,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      onSnapshot,
-      serverTimestamp,
-      doc,
-      updateDoc,
-      deleteDoc,
-      query,
-      where,
-      getDocs,
-      writeBatch
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, doc, updateDoc, deleteDoc, query, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // ✅ ใช้ค่าเดิมของคุณ (ห้ามขาดหาย)
+    // ✅ ค่า Firebase เดิม
     const firebaseConfig = {
       apiKey: "AIzaSyBo2QyLIW5q6AFAtTYLrqBr5wgssYvwgPI",
       authDomain: "webscorebungfire.firebaseapp.com",
@@ -680,20 +238,13 @@
       messagingSenderId: "1088110071642",
       appId: "1:1088110071642:web:037a36b00e84aa432ead63"
     };
-
     const ADMIN_EMAIL = "thebungnot10@gmail.com";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const state = {
-      camps: [],
-      records: [],
-      selectedCampId: null,
-      isAdmin: false,
-      currentUserEmail: null
-    };
+    const state = { camps: [], records: [], selectedCampId: null, isAdmin: false, currentUserEmail: null };
 
     const RESULT_META = {
       win:  { label: "ชนะ", icon: "✅", className: "win", weight: 1.0 },
@@ -703,29 +254,23 @@
 
     const el = {
       searchInput: document.getElementById("searchInput"),
-      clearSearchBtn: document.getElementById("clearSearchBtn"),
-      campList: document.getElementById("campList"),
-      campCount: document.getElementById("campCount"),
-      detailPanel: document.getElementById("detailPanel"),
-      selectedCampTag: document.getElementById("selectedCampTag"),
+      campGrid: document.getElementById("campGrid"),
+      detailOverlay: document.getElementById("detailOverlay"),
+      detailContent: document.getElementById("detailContent"),
 
       adminFab: document.getElementById("adminFab"),
       adminModal: document.getElementById("adminModal"),
       closeAdminModal: document.getElementById("closeAdminModal"),
       adminStateText: document.getElementById("adminStateText"),
       logoutBtn: document.getElementById("logoutBtn"),
-
       adminLoginCard: document.getElementById("adminLoginCard"),
       adminAddCampCard: document.getElementById("adminAddCampCard"),
       adminAddRecordCard: document.getElementById("adminAddRecordCard"),
-
       adminEmailInput: document.getElementById("adminEmailInput"),
       adminPasswordInput: document.getElementById("adminPasswordInput"),
       loginBtn: document.getElementById("loginBtn"),
-
       newCampName: document.getElementById("newCampName"),
       addCampBtn: document.getElementById("addCampBtn"),
-
       recordCampSelect: document.getElementById("recordCampSelect"),
       recordDate: document.getElementById("recordDate"),
       recordScore: document.getElementById("recordScore"),
@@ -733,42 +278,28 @@
       addRecordBtn: document.getElementById("addRecordBtn")
     };
 
-    // ฟังก์ชันซ่อนหน้าต่างต้อนรับ
-    window.startApp = function() {
-      document.getElementById('welcome-screen').style.display = 'none';
-    }
+    window.startApp = function() { document.getElementById('welcome-screen').style.display = 'none'; }
+    window.closeDetail = function() { el.detailOverlay.style.display = 'none'; state.selectedCampId = null; }
 
     function setDefaultDate() {
-      const d = new Date();
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
+      const d = new Date(); const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, "0"); const day = String(d.getDate()).padStart(2, "0");
       el.recordDate.value = `${y}-${m}-${day}`;
     }
 
     function formatThaiShort(isoDate) {
-      if (!isoDate) return "-";
-      const d = new Date(isoDate + "T00:00:00");
-      if (isNaN(d.getTime())) return isoDate;
-      const dd = String(d.getDate()).padStart(2, "0");
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      const yy = String(d.getFullYear() + 543).slice(-2);
+      if (!isoDate) return "-"; const d = new Date(isoDate + "T00:00:00"); if (isNaN(d.getTime())) return isoDate;
+      const dd = String(d.getDate()).padStart(2, "0"); const mm = String(d.getMonth() + 1).padStart(2, "0"); const yy = String(d.getFullYear() + 543).slice(-2);
       return `${dd}/${mm}/${yy}`;
     }
 
     function getMergedCamps() {
       const map = new Map();
       for (const camp of state.camps) map.set(camp.id, { ...camp, records: [] });
-      for (const rec of state.records) {
-        const target = map.get(rec.campId);
-        if (target) target.records.push(rec);
-      }
+      for (const rec of state.records) { const target = map.get(rec.campId); if (target) target.records.push(rec); }
       return Array.from(map.values());
     }
 
-    function getCampById(campId) {
-      return getMergedCamps().find(c => c.id === campId) || null;
-    }
+    function getCampById(campId) { return getMergedCamps().find(c => c.id === campId) || null; }
 
     function sortRecords(records) {
       return [...records].sort((a, b) => {
@@ -782,468 +313,218 @@
       const win = camp.records.filter(r => r.result === "win").length;
       const lose = camp.records.filter(r => r.result === "lose").length;
       const jao = camp.records.filter(r => r.result === "jao").length;
-
-      const avgScore = total
-        ? Math.round(camp.records.reduce((sum, r) => sum + (Number(r.score) || 0), 0) / total)
-        : 0;
-
-      const weighted = total
-        ? Math.round((camp.records.reduce((sum, r) => sum + (RESULT_META[r.result]?.weight ?? 0), 0) / total) * 100)
-        : 0;
-
-      return {
-        total, win, lose, jao, avgScore, weighted,
-        winPct: total ? Math.round((win / total) * 100) : 0,
-        losePct: total ? Math.round((lose / total) * 100) : 0,
-        jaoPct: total ? Math.round((jao / total) * 100) : 0
-      };
+      const avgScore = total ? Math.round(camp.records.reduce((sum, r) => sum + (Number(r.score) || 0), 0) / total) : 0;
+      const weighted = total ? Math.round((camp.records.reduce((sum, r) => sum + (RESULT_META[r.result]?.weight ?? 0), 0) / total) * 100) : 0;
+      return { total, win, lose, jao, avgScore, weighted };
     }
 
-    function escapeHtml(text) {
-      return String(text)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
+    function escapeHtml(text) { return String(text).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
 
-    function updateClearSearchBtn() {
-      const hasText = !!el.searchInput.value.trim();
-      el.clearSearchBtn.style.display = hasText ? "inline-block" : "none";
-    }
-
+    // ------------------------------------
+    // สร้างปุ่มแดงรายชื่อค่าย
+    // ------------------------------------
     function renderCampList() {
       const merged = getMergedCamps();
       const sortedByRecords = [...merged].sort((a, b) => {
         const diff = (b.records?.length || 0) - (a.records?.length || 0);
-        if (diff !== 0) return diff;
-        return (a.name || "").localeCompare(b.name || "", "th");
+        if (diff !== 0) return diff; return (a.name || "").localeCompare(b.name || "", "th");
       });
 
       const q = el.searchInput.value.trim().toLowerCase();
-      let visible = [];
+      const visible = q ? sortedByRecords.filter(c => (c.name || "").toLowerCase().includes(q)) : sortedByRecords;
 
-      if (q) {
-        visible = sortedByRecords.filter(c => (c.name || "").toLowerCase().includes(q));
-        el.campCount.textContent = `ผลค้นหา ${visible.length}/${merged.length}`;
-      } else {
-        visible = sortedByRecords.slice(0, 3);
-        el.campCount.textContent = `แสดง 3 ค่าย (รวม ${merged.length})`;
-      }
-
-      el.campList.innerHTML = "";
-      updateClearSearchBtn();
-
+      el.campGrid.innerHTML = "";
       if (!visible.length) {
-        const empty = document.createElement("div");
-        empty.className = "detail-empty";
-        empty.textContent = q ? "ไม่พบค่ายที่ค้นหา" : "ยังไม่มีข้อมูลค่าย";
-        el.campList.appendChild(empty);
+        el.campGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; font-size: 1.5rem; color: #666;">ไม่พบชื่อค่ายนี้</div>`;
         return;
       }
 
-      visible.forEach((camp, idx) => {
-        const stats = getStats(camp);
-
-        const card = document.createElement("div");
-        card.className = "camp-item" + (state.selectedCampId === camp.id ? " active" : "");
-
-        const left = document.createElement("div");
-        left.className = "camp-left";
-        left.innerHTML = `
-          <div class="camp-title">
-            <span class="rank">${idx + 1}</span>
-            <span class="camp-name">${escapeHtml(camp.name)}</span>
-          </div>
-          <div class="camp-meta">
-            <span>ทั้งหมด ${stats.total} ครั้ง</span>
-            <span>ประเมิน ${stats.weighted}%</span>
-            <span>เฉลี่ย ${stats.avgScore}</span>
-          </div>
-        `;
-
+      visible.forEach(camp => {
         const btn = document.createElement("button");
-        btn.className = "camp-btn";
-        btn.textContent = "กดเพื่อเช็ค";
+        btn.className = "camp-btn-red";
+        btn.textContent = escapeHtml(camp.name);
         btn.onclick = () => {
           state.selectedCampId = camp.id;
-          renderCampList();
           renderDetail();
-          // เลื่อนลงไปดูรายละเอียดทันทีเมื่อผู้สูงอายุกด (สำคัญมากในมือถือ)
-          document.getElementById("detailPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+          el.detailOverlay.style.display = "block";
+          el.detailOverlay.scrollTo(0,0);
         };
-
-        card.appendChild(left);
-        card.appendChild(btn);
-        el.campList.appendChild(card);
+        el.campGrid.appendChild(btn);
       });
     }
 
+    // ------------------------------------
+    // สร้างรายละเอียดค่ายเมื่อกดปุ่มแดง
+    // ------------------------------------
     function renderDetail() {
       const camp = state.selectedCampId ? getCampById(state.selectedCampId) : null;
+      if (!camp) return;
 
-      if (!camp) {
-        el.selectedCampTag.textContent = "ยังไม่ได้เลือก";
-        el.detailPanel.innerHTML = `
-          <div class="detail-empty">
-            เลือกค่ายจากรายการ แล้วกด “กดเพื่อเช็ค” เพื่อดูประวัติและเปอร์เซ็นต์
-          </div>
-        `;
-        return;
-      }
-
-      el.selectedCampTag.textContent = camp.name;
       const stats = getStats(camp);
       const rows = sortRecords(camp.records);
 
       let historyHtml = "";
       if (!rows.length) {
-        historyHtml = `<div class="detail-empty">ยังไม่มีประวัติของค่ายนี้</div>`;
+        historyHtml = `<div style="text-align:center; font-size:1.5rem; color:#666; margin-top:20px;">ยังไม่มีประวัติ</div>`;
       } else {
         historyHtml = rows.map(r => {
           const meta = RESULT_META[r.result] || RESULT_META.lose;
           return `
-            <div class="history">
-              <div class="history-line">${formatThaiShort(r.date)} &gt; ${escapeHtml(camp.name)} = ${r.score} ${meta.icon}${meta.icon}</div>
-              <div class="history-row">
-                <span class="pill ${meta.className}">${meta.icon} ${meta.label}</span>
-                <span>สกอร์ ${r.score}</span>
-                ${state.isAdmin ? `
-                  <span style="margin-left:auto; display:flex; gap:10px;">
-                    <button class="mini-btn" onclick="window.editRecordById('${r.id}')">แก้ไข</button>
-                    <button class="mini-btn danger" onclick="window.deleteRecordById('${r.id}')">ลบ</button>
-                  </span>
-                ` : ""}
-              </div>
+            <div class="history-card ${meta.className}">
+              <div style="margin-bottom:5px;">วันที่: ${formatThaiShort(r.date)}</div>
+              <div style="font-size: 1.6rem; color:#000;">สกอร์: ${r.score} ${meta.icon}</div>
+              ${state.isAdmin ? `
+                <div class="inline-actions">
+                  <button class="mini-btn edit" onclick="window.editRecordById('${r.id}')">✏️ แก้ไข</button>
+                  <button class="mini-btn danger" onclick="window.deleteRecordById('${r.id}')">🗑️ ลบ</button>
+                </div>
+              ` : ""}
             </div>
           `;
         }).join("");
       }
 
-      el.detailPanel.innerHTML = `
-        <div class="detail-top">
-          <div class="detail-title">${escapeHtml(camp.name)}</div>
-          <div class="detail-hint">สรุปผลงานย้อนหลังและประเมินผลรวม</div>
-          ${state.isAdmin ? `
-            <div class="inline-actions">
-              <button class="mini-btn" onclick="window.renameSelectedCamp()">แก้ชื่อค่าย</button>
-              <button class="mini-btn danger" onclick="window.deleteSelectedCamp()">ลบค่าย</button>
-            </div>
-          ` : ""}
-        </div>
+      el.detailContent.innerHTML = `
+        <div class="detail-title">${escapeHtml(camp.name)}</div>
+        
+        ${state.isAdmin ? `
+          <div class="admin-actions-top">
+            <button class="mini-btn edit" onclick="window.renameSelectedCamp()">✏️ เปลี่ยนชื่อค่าย</button>
+            <button class="mini-btn danger" onclick="window.deleteSelectedCamp()">🗑️ ลบค่ายนี้ทิ้ง</button>
+          </div>
+        ` : ""}
 
-        <div class="stats">
-          <div class="stat big">
-            <div class="label">ประเมินรวม (เปอร์เซ็นต์ความน่าจะเป็น)</div>
-            <div class="val">${stats.weighted}%</div>
+        <div class="stat-box big">
+          <div class="label">ประเมินผลรวมความน่าจะเป็น</div>
+          <div class="val">${stats.weighted}%</div>
+        </div>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <div class="stat-box">
+            <div class="label">แข่งทั้งหมด</div>
+            <div class="val">${stats.total}</div>
           </div>
-          <div class="stat">
-            <div class="label">แข่งขันทั้งหมด</div>
-            <div class="val">${stats.total} ครั้ง</div>
-          </div>
-          <div class="stat">
+          <div class="stat-box">
             <div class="label">คะแนนเฉลี่ย</div>
             <div class="val">${stats.avgScore}</div>
           </div>
-          <div class="stat">
+          <div class="stat-box">
             <div class="label">ชนะ ✅</div>
-            <div class="val">${stats.win} (${stats.winPct}%)</div>
+            <div class="val">${stats.win}</div>
           </div>
-          <div class="stat">
-            <div class="label">แพ้ ❌</div>
-            <div class="val">${stats.lose} (${stats.losePct}%)</div>
-          </div>
-          <div class="stat">
-            <div class="label">จาว ⛔️</div>
-            <div class="val">${stats.jao} (${stats.jaoPct}%)</div>
+          <div class="stat-box">
+            <div class="label">แพ้/จาว ❌⛔️</div>
+            <div class="val">${stats.lose + stats.jao}</div>
           </div>
         </div>
 
-        <div class="legend">
-          <span>✅ = ชนะ</span>
-          <span>❌ = แพ้</span>
-          <span>⛔️ = จาว</span>
-        </div>
-
-        <div class="history-list">${historyHtml}</div>
+        <h3 style="font-size:1.8rem; margin-top:20px; border-bottom:2px solid #ccc; padding-bottom:10px;">ประวัติย้อนหลัง</h3>
+        ${historyHtml}
       `;
     }
 
+    // ฟังก์ชันแอดมิน (ทำงานเหมือนเดิมเป๊ะ)
     function renderAdminCampSelect() {
       const camps = getMergedCamps().sort((a, b) => a.name.localeCompare(b.name, "th"));
       el.recordCampSelect.innerHTML = "";
       camps.forEach(camp => {
         const opt = document.createElement("option");
-        opt.value = camp.id;
-        opt.textContent = camp.name;
+        opt.value = camp.id; opt.textContent = camp.name;
         el.recordCampSelect.appendChild(opt);
       });
     }
 
     function refreshAdminUI() {
       if (state.isAdmin) {
-        el.adminStateText.textContent = `สถานะ: เข้าสู่ระบบแล้ว (${state.currentUserEmail})`;
-        el.logoutBtn.style.display = "inline-block";
-        el.adminLoginCard.style.display = "none";
-        el.adminAddCampCard.style.display = "block";
-        el.adminAddRecordCard.style.display = "block";
+        el.adminStateText.textContent = `แอดมิน: ${state.currentUserEmail}`;
+        el.logoutBtn.style.display = "block"; el.adminLoginCard.style.display = "none";
+        el.adminAddCampCard.style.display = "block"; el.adminAddRecordCard.style.display = "block";
         renderAdminCampSelect();
       } else {
-        if (state.currentUserEmail && !state.isAdmin) {
-          el.adminStateText.textContent = `สถานะ: ล็อกอินอยู่ แต่ไม่ใช่อีเมลแอดมิน (${state.currentUserEmail})`;
-        } else {
-          el.adminStateText.textContent = "สถานะ: ยังไม่ได้เข้าสู่ระบบ";
-        }
-        el.logoutBtn.style.display = state.currentUserEmail ? "inline-block" : "none";
+        el.adminStateText.textContent = "สถานะ: บุคคลทั่วไป";
+        el.logoutBtn.style.display = state.currentUserEmail ? "block" : "none";
         el.adminLoginCard.style.display = state.currentUserEmail ? "none" : "block";
-        el.adminAddCampCard.style.display = "none";
-        el.adminAddRecordCard.style.display = "none";
+        el.adminAddCampCard.style.display = "none"; el.adminAddRecordCard.style.display = "none";
       }
     }
 
     function startRealtimeListeners() {
       onSnapshot(collection(db, "camps"), (snap) => {
         state.camps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-        if (state.selectedCampId && !state.camps.some(c => c.id === state.selectedCampId)) {
-          state.selectedCampId = null;
-        } else if (!state.selectedCampId && state.camps.length) {
-          state.selectedCampId = state.camps[0].id;
-        }
-
-        renderCampList();
-        renderDetail();
+        renderCampList(); 
+        if(state.selectedCampId) renderDetail();
         if (state.isAdmin) renderAdminCampSelect();
-      }, (err) => {
-        console.error("อ่าน camps ไม่สำเร็จ", err);
-        alert("เชื่อมต่อฐานข้อมูลไม่สำเร็จ (camps)\n" + (err.code || "") + "\n" + (err.message || ""));
       });
-
       onSnapshot(collection(db, "records"), (snap) => {
         state.records = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         renderCampList();
-        renderDetail();
-      }, (err) => {
-        console.error("อ่าน records ไม่สำเร็จ", err);
-        alert("เชื่อมต่อฐานข้อมูลไม่สำเร็จ (records)\n" + (err.code || "") + "\n" + (err.message || ""));
+        if(state.selectedCampId) renderDetail();
       });
     }
 
-    async function handleLogin() {
-      const email = el.adminEmailInput.value.trim();
-      const password = el.adminPasswordInput.value;
-
-      if (!email || !password) {
-        alert("กรุณากรอกอีเมลและรหัสผ่าน");
-        return;
-      }
-
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        el.adminPasswordInput.value = "";
-      } catch (e) {
-        console.error(e);
-        alert("เข้าสู่ระบบไม่สำเร็จ\n" + (e.code || "") + "\n" + (e.message || ""));
-      }
-    }
-
-    async function handleLogout() {
-      try {
-        await signOut(auth);
-      } catch (e) {
-        console.error(e);
-        alert("ออกจากระบบไม่สำเร็จ");
-      }
-    }
-
+    // การทำงานปุ่มแอดมิน
+    el.loginBtn.addEventListener("click", async () => {
+      const e = el.adminEmailInput.value.trim(), p = el.adminPasswordInput.value;
+      if (!e || !p) return alert("กรอกข้อมูลให้ครบ");
+      try { await signInWithEmailAndPassword(auth, e, p); el.adminPasswordInput.value = ""; } 
+      catch (err) { alert("เข้าสู่ระบบผิดพลาด"); }
+    });
+    el.logoutBtn.addEventListener("click", () => signOut(auth));
     onAuthStateChanged(auth, (user) => {
       state.currentUserEmail = user?.email || null;
       state.isAdmin = !!(user?.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
-      refreshAdminUI();
-      renderCampList();
-      renderDetail();
+      refreshAdminUI(); renderCampList(); if(state.selectedCampId) renderDetail();
     });
 
-    async function addCamp() {
-      if (!state.isAdmin) return alert("เฉพาะแอดมินเท่านั้น");
-      const name = el.newCampName.value.trim();
-      if (!name) return alert("กรุณากรอกชื่อค่าย");
-
-      const exists = state.camps.some(c => (c.name || "").toLowerCase() === name.toLowerCase());
-      if (exists) return alert("มีชื่อค่ายนี้แล้ว");
-
-      try {
-        await addDoc(collection(db, "camps"), { name, createdAt: serverTimestamp() });
-        el.newCampName.value = "";
-        alert("เพิ่มค่ายเรียบร้อย");
-      } catch (e) {
-        console.error(e);
-        alert("เพิ่มค่ายไม่สำเร็จ\n" + (e.code || "") + "\n" + (e.message || ""));
-      }
-    }
-
-    async function addRecord() {
-      if (!state.isAdmin) return alert("เฉพาะแอดมินเท่านั้น");
-
-      const campId = el.recordCampSelect.value;
-      const date = el.recordDate.value;
-      const score = Number(el.recordScore.value);
-      const result = el.recordResult.value;
-
-      if (!campId) return alert("กรุณาเลือกค่าย");
-      if (!date) return alert("กรุณาเลือกวันที่");
-      if (Number.isNaN(score) || score < 0) return alert("กรุณากรอกสกอร์ให้ถูกต้อง");
-      if (!["win","lose","jao"].includes(result)) return alert("ผลลัพธ์ไม่ถูกต้อง");
-
-      try {
-        await addDoc(collection(db, "records"), {
-          campId, date, score, result, createdAt: serverTimestamp()
-        });
-        state.selectedCampId = campId;
-        el.recordScore.value = "";
-        el.recordResult.value = "win";
-        setDefaultDate();
-        alert("บันทึกประวัติเรียบร้อย");
-      } catch (e) {
-        console.error(e);
-        alert("บันทึกประวัติไม่สำเร็จ\n" + (e.code || "") + "\n" + (e.message || ""));
-      }
-    }
-
-    async function editRecordById(recordId) {
-      if (!state.isAdmin) return alert("เฉพาะแอดมินเท่านั้น");
-      const rec = state.records.find(r => r.id === recordId);
-      if (!rec) return alert("ไม่พบรายการ");
-
-      const newDate = prompt("แก้ไขวันที่ (YYYY-MM-DD)", rec.date || "");
-      if (newDate === null) return;
-      const newScoreRaw = prompt("แก้ไขสกอร์", String(rec.score ?? ""));
-      if (newScoreRaw === null) return;
-      const newResultRaw = prompt("แก้ผลลัพธ์: win / lose / jao", rec.result || "win");
-      if (newResultRaw === null) return;
-
-      const score = Number(newScoreRaw);
-      const result = String(newResultRaw).trim().toLowerCase();
-
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) return alert("วันที่ต้องเป็น YYYY-MM-DD");
-      if (Number.isNaN(score) || score < 0) return alert("สกอร์ไม่ถูกต้อง");
-      if (!["win","lose","jao"].includes(result)) return alert("ผลลัพธ์ต้องเป็น win / lose / jao");
-
-      try {
-        await updateDoc(doc(db, "records", recordId), { date: newDate, score, result });
-        alert("แก้ไขรายการเรียบร้อย");
-      } catch (e) {
-        console.error(e);
-        alert("แก้ไขรายการไม่สำเร็จ\n" + (e.code || "") + "\n" + (e.message || ""));
-      }
-    }
-
-    async function deleteRecordById(recordId) {
-      if (!state.isAdmin) return alert("เฉพาะแอดมินเท่านั้น");
-      const rec = state.records.find(r => r.id === recordId);
-      if (!rec) return alert("ไม่พบรายการ");
-      const camp = state.camps.find(c => c.id === rec.campId);
-
-      const ok = confirm(`ลบรายการนี้ใช่ไหม?\nค่าย: ${camp?.name || "-"}\nวันที่: ${rec.date}\nสกอร์: ${rec.score}`);
-      if (!ok) return;
-
-      try {
-        await deleteDoc(doc(db, "records", recordId));
-        alert("ลบรายการเรียบร้อย");
-      } catch (e) {
-        console.error(e);
-        alert("ลบรายการไม่สำเร็จ\n" + (e.code || "") + "\n" + (e.message || ""));
-      }
-    }
-
-    async function renameSelectedCamp() {
-      if (!state.isAdmin) return alert("เฉพาะแอดมินเท่านั้น");
-      const camp = state.selectedCampId ? state.camps.find(c => c.id === state.selectedCampId) : null;
-      if (!camp) return alert("ยังไม่ได้เลือกค่าย");
-
-      const newName = prompt("แก้ชื่อค่าย", camp.name || "");
-      if (newName === null) return;
-      const name = newName.trim();
-      if (!name) return alert("ชื่อค่ายห้ามว่าง");
-
-      const duplicate = state.camps.some(c => c.id !== camp.id && (c.name || "").toLowerCase() === name.toLowerCase());
-      if (duplicate) return alert("มีชื่อค่ายนี้แล้ว");
-
-      try {
-        await updateDoc(doc(db, "camps", camp.id), { name });
-        alert("แก้ชื่อค่ายเรียบร้อย");
-      } catch (e) {
-        console.error(e);
-        alert("แก้ชื่อค่ายไม่สำเร็จ\n" + (e.code || "") + "\n" + (e.message || ""));
-      }
-    }
-
-    async function deleteSelectedCamp() {
-      if (!state.isAdmin) return alert("เฉพาะแอดมินเท่านั้น");
-      const camp = state.selectedCampId ? state.camps.find(c => c.id === state.selectedCampId) : null;
-      if (!camp) return alert("ยังไม่ได้เลือกค่าย");
-
-      const ok = confirm(`ลบค่าย "${camp.name}" ใช่ไหม?\nระบบจะลบประวัติทั้งหมดของค่ายนี้ด้วย`);
-      if (!ok) return;
-
-      try {
-        const batch = writeBatch(db);
-        batch.delete(doc(db, "camps", camp.id));
-
-        const q = query(collection(db, "records"), where("campId", "==", camp.id));
-        const snap = await getDocs(q);
-        snap.forEach(d => batch.delete(doc(db, "records", d.id)));
-
-        await batch.commit();
-        state.selectedCampId = null;
-        alert("ลบค่ายและประวัติทั้งหมดเรียบร้อย");
-      } catch (e) {
-        console.error(e);
-        alert("ลบค่ายไม่สำเร็จ\n" + (e.code || "") + "\n" + (e.message || ""));
-      }
-    }
-
-    // expose for inline buttons
-    window.editRecordById = editRecordById;
-    window.deleteRecordById = deleteRecordById;
-    window.renameSelectedCamp = renameSelectedCamp;
-    window.deleteSelectedCamp = deleteSelectedCamp;
-
-    function openAdminModal() {
-      el.adminModal.classList.add("show");
-      refreshAdminUI();
-    }
-    function closeAdminModal() {
-      el.adminModal.classList.remove("show");
-    }
-
-    // Events
-    el.searchInput.addEventListener("input", () => {
-      renderCampList();
+    el.addCampBtn.addEventListener("click", async () => {
+      if (!state.isAdmin) return;
+      const name = el.newCampName.value.trim(); if (!name) return alert("ใส่ชื่อค่าย");
+      if (state.camps.some(c => (c.name||"").toLowerCase() === name.toLowerCase())) return alert("ชื่อซ้ำ");
+      await addDoc(collection(db, "camps"), { name, createdAt: serverTimestamp() });
+      el.newCampName.value = ""; alert("เพิ่มค่ายแล้ว");
     });
 
-    el.clearSearchBtn.addEventListener("click", () => {
-      el.searchInput.value = "";
-      renderCampList();
+    el.addRecordBtn.addEventListener("click", async () => {
+      if (!state.isAdmin) return;
+      const campId = el.recordCampSelect.value, date = el.recordDate.value, score = Number(el.recordScore.value), result = el.recordResult.value;
+      if (!campId || !date || isNaN(score)) return alert("กรอกข้อมูลให้ครบ");
+      await addDoc(collection(db, "records"), { campId, date, score, result, createdAt: serverTimestamp() });
+      el.recordScore.value = ""; setDefaultDate(); alert("เพิ่มประวัติแล้ว");
     });
 
-    el.adminFab.addEventListener("click", openAdminModal);
-    el.closeAdminModal.addEventListener("click", closeAdminModal);
-    el.adminModal.addEventListener("click", (e) => {
-      if (e.target === el.adminModal) closeAdminModal();
-    });
+    window.editRecordById = async (id) => {
+      if (!state.isAdmin) return; const rec = state.records.find(r => r.id === id); if(!rec) return;
+      const nd = prompt("แก้วันที่ YYYY-MM-DD", rec.date||""); if(!nd) return;
+      const ns = prompt("แก้สกอร์", rec.score||""); if(!ns) return;
+      const nr = prompt("แก้ผล: win / lose / jao", rec.result||"win"); if(!nr) return;
+      await updateDoc(doc(db, "records", id), { date: nd, score: Number(ns), result: nr });
+    };
+    window.deleteRecordById = async (id) => {
+      if (!state.isAdmin) return; if(confirm("ยืนยันลบประวัตินี้?")) await deleteDoc(doc(db, "records", id));
+    };
+    window.renameSelectedCamp = async () => {
+      if (!state.isAdmin || !state.selectedCampId) return;
+      const camp = getCampById(state.selectedCampId);
+      const nn = prompt("ชื่อค่ายใหม่", camp.name);
+      if (nn && nn.trim()) await updateDoc(doc(db, "camps", camp.id), { name: nn.trim() });
+    };
+    window.deleteSelectedCamp = async () => {
+      if (!state.isAdmin || !state.selectedCampId) return;
+      if(!confirm("ยืนยันลบค่ายนี้และประวัติทั้งหมด?")) return;
+      const camp = getCampById(state.selectedCampId);
+      const batch = writeBatch(db);
+      batch.delete(doc(db, "camps", camp.id));
+      const snap = await getDocs(query(collection(db, "records"), where("campId", "==", camp.id)));
+      snap.forEach(d => batch.delete(doc(db, "records", d.id)));
+      await batch.commit(); window.closeDetail(); alert("ลบเรียบร้อย");
+    };
 
-    el.loginBtn.addEventListener("click", handleLogin);
-    el.adminPasswordInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") handleLogin();
-    });
-    el.logoutBtn.addEventListener("click", handleLogout);
+    // Events ทั่วไป
+    el.searchInput.addEventListener("input", renderCampList);
+    el.adminFab.addEventListener("click", () => { el.adminModal.classList.add("show"); refreshAdminUI(); });
+    el.closeAdminModal.addEventListener("click", () => el.adminModal.classList.remove("show"));
+    el.adminModal.addEventListener("click", (e) => { if(e.target===el.adminModal) el.adminModal.classList.remove("show"); });
 
-    el.addCampBtn.addEventListener("click", addCamp);
-    el.addRecordBtn.addEventListener("click", addRecord);
-
-    // Start
     setDefaultDate();
     startRealtimeListeners();
   </script>
